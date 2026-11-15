@@ -1,0 +1,16 @@
+# Uploaded book files and covers (keep folder)
+public/uploads/covers/*
+!public/uploads/covers/.gitkeep
+storage/ebooks/*
+!storage/ebooks/.gitkeep
+
+# PHP
+vendor/
+composer.lock
+
+# Editor / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+*.log
