@@ -1,1 +1,62 @@
-[]
+[
+    {
+        "id_user": 1,
+        "name": "Test Member",
+        "email": "member@test.com",
+        "password": "$2y$12$qJ8dw0q4JK2.9oxb9FYAh.iPF7crhBYVuLGr1tgGLknZwisEFLYle",
+        "phone": "081234567890",
+        "address": "Malang",
+        "role": "member",
+        "status": "active",
+        "created_at": "2026-11-16 06:31:40",
+        "updated_at": "2026-11-16 06:31:40"
+    },
+    {
+        "id_user": 2,
+        "name": "Frontend Test",
+        "email": "frontend@test.com",
+        "password": "$2y$12$PAH2BvuqTiK8BudTrgRde.IE4Ag\/YjSMoeHROIpSHtpHplOurLLby",
+        "phone": "08123456789",
+        "address": "Malang",
+        "role": "member",
+        "status": "active",
+        "created_at": "2026-11-16 06:40:17",
+        "updated_at": "2026-11-16 06:40:17"
+    },
+    {
+        "id_user": 3,
+        "name": "Administrator",
+        "email": "admin@library.com",
+        "password": "$2y$12$ayb4pArdqRO97nEKEVqNj.fXc.pXRpX1y4h70rXafF\/49zHGgttoS",
+        "phone": "081234567890",
+        "address": "Malang",
+        "role": "admin",
+        "status": "active",
+        "created_at": "2026-11-16 07:01:51",
+        "updated_at": "2026-11-16 07:01:51"
+    },
+    {
+        "id_user": 4,
+        "name": "Member Baru",
+        "email": "memberbaru@test.com",
+        "password": "$2y$12$NZaoyg.iJ\/0JuZDBh55APexO4YdzjKi9qfhImoQprqS7lCD9MD7dC",
+        "phone": "081234567890",
+        "address": "Malang",
+        "role": "member",
+        "status": "inactive",
+        "created_at": "2026-11-16 07:03:02",
+        "updated_at": "2026-11-16 07:03:02"
+    },
+    {
+        "id_user": 5,
+        "name": "Test Member",
+        "email": "testmember@example.com",
+        "password": "$2y$12$uYR7glo5Z\/kayZAyBwiU1.oC7D\/1JD\/wnG7JLa2qygyPd4X2yIhBS",
+        "phone": "081234567890",
+        "address": "Malang",
+        "role": "member",
+        "status": "active",
+        "created_at": "2026-11-16 10:14:23",
+        "updated_at": "2026-11-16 10:14:23"
+    }
+]
