@@ -1,1 +1,36 @@
-[]
+[
+    {
+        "id_ebook": 1,
+        "id_category": 1,
+        "title": "Modull server 2",
+        "author": "Fahmy",
+        "publisher": "Lab Informatika",
+        "publication_year": 2025,
+        "isbn": "987643242-2026",
+        "description": "KOde datata",
+        "cover": "cover_3ba81a34a047798f.jpeg",
+        "file_path": "ebook_13b1604d576eab20.pdf",
+        "status": "available",
+        "license_limit": 10,
+        "license_total": 10,
+        "create_at": "2026-11-16 16:31:32",
+        "update_at": "2026-11-17 14:00:02"
+    },
+    {
+        "id_ebook": 2,
+        "id_category": 1,
+        "title": "Modull server 3",
+        "author": "Fahmy",
+        "publisher": "Lab Informatika",
+        "publication_year": 2025,
+        "isbn": "987643243-2026",
+        "description": "KOde datata",
+        "cover": "cover_df28ade4e34d8ff2.jpeg",
+        "file_path": "ebook_895d30b8b3c5c67b.pdf",
+        "status": "available",
+        "license_limit": 10,
+        "license_total": 10,
+        "create_at": "2026-11-17 14:16:28",
+        "update_at": "2026-11-17 14:22:12"
+    }
+]
