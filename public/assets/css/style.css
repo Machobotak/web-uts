@@ -1,1 +1,143 @@
-<?php
+/* CSS global: variabel warna, reset, navbar, tombol, footer.
+   Dimuat semua halaman lewat pages/partials/header.php. */
+
+:root {
+    --accent: #2563eb;
+    --accent-dark: #1d4ed8;
+    --accent-soft: #eff6ff;
+    --ink: #1f2937;
+    --ink-strong: #111827;
+    --text: #374151;
+    --text-soft: #4b5563;
+    --muted: #6b7280;
+    --faint: #9ca3af;
+    --line: #e5e7eb;
+    --line-strong: #d1d5db;
+    --page: #f5f7fb;
+    --surface: #ffffff;
+    --radius: 8px;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: var(--page);
+    color: var(--ink);
+}
+
+.navbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+    padding: 16px 6%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.logo {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--accent);
+    text-decoration: none;
+}
+
+.nav-links {
+    display: flex;
+    gap: 22px;
+    align-items: center;
+}
+
+.nav-links a {
+    color: var(--text);
+    text-decoration: none;
+    font-size: 15px;
+}
+
+.nav-links a:hover,
+.nav-links a[aria-current="page"] {
+    color: var(--accent);
+}
+
+.btn {
+    display: inline-block;
+    padding: 12px 20px;
+    border: none;
+    border-radius: var(--radius);
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: normal;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.btn + .btn {
+    margin-left: 10px;
+}
+
+.btn-primary {
+    background: var(--accent);
+    color: var(--surface);
+}
+
+.btn-primary:hover {
+    background: var(--accent-dark);
+}
+
+.btn-secondary {
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--line-strong);
+}
+
+.btn-secondary:hover {
+    background: #f3f4f6;
+}
+
+.btn-outline {
+    background: var(--surface);
+    color: var(--accent);
+    border: 1px solid var(--accent);
+}
+
+.btn-outline:hover {
+    background: var(--accent-soft);
+}
+
+.btn-light {
+    background: var(--surface);
+    color: var(--accent);
+}
+
+.btn-light:hover {
+    background: var(--accent-soft);
+}
+
+.footer {
+    background: var(--ink-strong);
+    color: var(--line-strong);
+    text-align: center;
+    padding: 25px 15px;
+    font-size: 14px;
+}
+
+@media (max-width: 800px) {
+    .navbar {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .nav-links {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+}

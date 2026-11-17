@@ -1,0 +1,121 @@
+/* CSS khusus halaman detail e-book. */
+
+.container {
+    width: min(1000px, 90%);
+    margin: 0 auto;
+}
+
+.detail-section {
+    padding: 60px 0;
+}
+
+.back-link {
+    display: inline-block;
+    color: var(--accent);
+    text-decoration: none;
+    margin-bottom: 25px;
+    font-weight: 600;
+}
+
+.detail-card {
+    background: var(--surface);
+    border-radius: 18px;
+    padding: 35px;
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 40px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
+}
+
+.cover {
+    width: 100%;
+    height: 390px;
+    background: var(--line);
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--faint);
+}
+
+.cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.cover.is-empty::after {
+    content: 'Cover E-Book';
+    color: var(--faint);
+    font-size: 14px;
+}
+
+.category {
+    display: inline-block;
+    background: var(--accent-soft);
+    color: var(--accent);
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 13px;
+    margin-bottom: 15px;
+}
+
+.content h1 {
+    font-size: 34px;
+    margin-bottom: 10px;
+}
+
+.author {
+    color: var(--muted);
+    margin-bottom: 25px;
+}
+
+.description {
+    color: var(--text-soft);
+    line-height: 1.8;
+    margin-bottom: 25px;
+}
+
+.info {
+    border-top: 1px solid var(--line);
+    padding-top: 20px;
+    margin-bottom: 25px;
+}
+
+.info p {
+    margin-bottom: 8px;
+    color: var(--text-soft);
+}
+
+.empty {
+    background: var(--surface);
+    border-radius: 18px;
+    padding: 60px 20px;
+    text-align: center;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
+}
+
+.empty h1 {
+    margin-bottom: 12px;
+}
+
+.empty p {
+    color: var(--muted);
+    margin-bottom: 25px;
+}
+
+@media (max-width: 800px) {
+    .detail-card {
+        grid-template-columns: 1fr;
+    }
+
+    .cover {
+        max-width: 300px;
+        margin: 0 auto;
+    }
+
+    .content h1 {
+        font-size: 28px;
+    }
+}
