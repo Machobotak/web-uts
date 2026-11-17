@@ -1,105 +1,44 @@
+
 <?php
 
 require_once __DIR__ . '/../../config/bootstrap.php';
 
 use App\Services\AuthService;
 
-function sendResponse(array $data, int $status = 200): void
-{
-    http_response_code($status);
-    header('Content-Type: application/json');
-
-    echo json_encode($data, JSON_PRETTY_PRINT);
+// Handler hanya menerima POST.
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header('Location: ' . app_url('pages/auth/login.php'));
     exit;
 }
 
-// Mendeteksi jenis request.
-$isJson = str_contains(
-    $_SERVER['CONTENT_TYPE'] ?? '',
-    'application/json'
-);
+$email = trim($_POST['email'] ?? '');
+$password = $_POST['password'] ?? '';
 
-// Mengambil data.
-if ($isJson) {
-    $data = json_decode(file_get_contents('php://input'), true) ?? [];
-} else {
-    $data = $_POST;
-}
-
-// Hanya menerima POST.
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    sendResponse([
-        'success' => false,
-        'message' => 'Method tidak diizinkan.'
-    ], 405);
+if ($email === '' || $password === '') {
+    header('Location: ' . app_url('pages/auth/login.php?error=empty'));
+    exit;
 }
 
 try {
-    $email = trim($data['email'] ?? '');
-    $password = $data['password'] ?? '';
+    $auth = new AuthService($storage);
 
-    if ($email === '' || $password === '') {
-        throw new \InvalidArgumentException(
-            'Email dan password wajib diisi.'
-        );
-    }
-
-    $authService = new AuthService($storage);
-
-    // Memproses login.
-    $user = $authService->login($email, $password);
+    $user = $auth->login($email, $password);
 
     if ($user === null) {
-        if ($isJson) {
-            sendResponse([
-                'success' => false,
-                'message' => 'Email atau password salah, atau akun tidak aktif.'
-            ], 401);
-        }
-
         header('Location: ' . app_url('pages/auth/login.php?error=invalid'));
         exit;
     }
 
-    // Menentukan halaman berdasarkan role.
-    $dashboard = $user->getRole() === 'admin'
-        ? 'pages/admin/dashboard.php'
-        : 'pages/member/dashboard.php';
-
-    $response = [
-        'success' => true,
-        'message' => 'Login berhasil.',
-        'data' => [
-            'user' => $user->toPublicArray(),
-            'redirect' => app_url($dashboard)
-        ]
-    ];
-
-    if ($isJson) {
-        sendResponse($response);
+    if ($user->getRole() === 'admin') {
+        header('Location: ' . app_url('pages/admin/dashboard.php'));
+        exit;
     }
 
-    header('Location: ' . app_url($dashboard));
+    header('Location: ' . app_url('pages/member/dashboard.php'));
     exit;
 
-} catch (\InvalidArgumentException $e) {
-
-    if ($isJson) {
-        sendResponse([
-            'success' => false,
-            'message' => $e->getMessage()
-        ], 422);
-    }
-
-    header('Location: ' . app_url('pages/auth/login.php?error=empty'));
-    exit;
-
-} catch (\Throwable $e) {
-
+} catch (Throwable $e) {
     error_log($e->getMessage());
-
-    sendResponse([
-        'success' => false,
-        'message' => 'Terjadi kesalahan pada server.'
-    ], 500);
+    http_response_code(500);
+    echo 'Terjadi kesalahan pada server: ' . htmlspecialchars($e->getMessage());
 }
