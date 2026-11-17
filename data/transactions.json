@@ -1,1 +1,38 @@
-[]
+[
+    {
+        "id_transaction": 1,
+        "id_user": 3,
+        "approved_by": 3,
+        "processed_at": "2026-11-17 10:45:49",
+        "status": "rejected",
+        "notes": "",
+        "create_at": "2026-11-16 16:31:58"
+    },
+    {
+        "id_transaction": 2,
+        "id_user": 3,
+        "approved_by": 3,
+        "processed_at": "2026-11-17 10:44:24",
+        "status": "completed",
+        "notes": "",
+        "create_at": "2026-11-16 16:34:14"
+    },
+    {
+        "id_transaction": 3,
+        "id_user": 3,
+        "approved_by": null,
+        "processed_at": null,
+        "status": "cancelled",
+        "notes": "",
+        "create_at": "2026-11-17 10:42:58"
+    },
+    {
+        "id_transaction": 4,
+        "id_user": 3,
+        "approved_by": 3,
+        "processed_at": "2026-11-17 14:20:09",
+        "status": "completed",
+        "notes": "",
+        "create_at": "2026-11-17 14:18:55"
+    }
+]

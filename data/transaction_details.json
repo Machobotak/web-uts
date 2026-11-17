@@ -1,0 +1,38 @@
+[
+    {
+        "id_detail": 1,
+        "id_transaction": 1,
+        "id_ebook": 1,
+        "start_date": "2026-11-16 16:31:58",
+        "due_date": "2026-11-23 16:31:58",
+        "status": "cancelled",
+        "returned_at": null
+    },
+    {
+        "id_detail": 2,
+        "id_transaction": 2,
+        "id_ebook": 1,
+        "start_date": "2026-11-16 16:34:14",
+        "due_date": "2026-11-23 16:34:14",
+        "status": "returned",
+        "returned_at": "2026-11-17 14:00:02"
+    },
+    {
+        "id_detail": 3,
+        "id_transaction": 3,
+        "id_ebook": 1,
+        "start_date": "2026-11-17 10:42:58",
+        "due_date": "2026-11-24 10:42:58",
+        "status": "cancelled",
+        "returned_at": null
+    },
+    {
+        "id_detail": 4,
+        "id_transaction": 4,
+        "id_ebook": 2,
+        "start_date": "2026-11-17 14:18:55",
+        "due_date": "2026-11-24 14:18:55",
+        "status": "returned",
+        "returned_at": "2026-11-17 14:22:12"
+    }
+]
