@@ -34,5 +34,50 @@
         "status": "completed",
         "notes": "",
         "create_at": "2026-11-17 14:18:55"
+    },
+    {
+        "id_transaction": 5,
+        "id_user": 3,
+        "approved_by": null,
+        "processed_at": null,
+        "status": "pending",
+        "notes": "",
+        "create_at": "2026-11-17 14:34:02"
+    },
+    {
+        "id_transaction": 6,
+        "id_user": 3,
+        "approved_by": null,
+        "processed_at": null,
+        "status": "pending",
+        "notes": "",
+        "create_at": "2026-11-17 14:36:01"
+    },
+    {
+        "id_transaction": 7,
+        "id_user": 3,
+        "approved_by": 3,
+        "processed_at": "2026-11-17 14:39:20",
+        "status": "approved",
+        "notes": "",
+        "create_at": "2026-11-17 14:38:28"
+    },
+    {
+        "id_transaction": 8,
+        "id_user": 3,
+        "approved_by": 3,
+        "processed_at": "2026-11-17 14:39:41",
+        "status": "completed",
+        "notes": "",
+        "create_at": "2026-11-17 14:38:58"
+    },
+    {
+        "id_transaction": 9,
+        "id_user": 3,
+        "approved_by": 3,
+        "processed_at": "2026-11-17 14:40:57",
+        "status": "approved",
+        "notes": "",
+        "create_at": "2026-11-17 14:40:44"
     }
 ]

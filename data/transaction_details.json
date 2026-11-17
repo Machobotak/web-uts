@@ -34,5 +34,68 @@
         "due_date": "2026-11-24 14:18:55",
         "status": "returned",
         "returned_at": "2026-11-17 14:22:12"
+    },
+    {
+        "id_detail": 5,
+        "id_transaction": 5,
+        "id_ebook": 2,
+        "start_date": "2026-11-17 14:34:02",
+        "due_date": "2026-11-24 14:34:02",
+        "status": "active",
+        "returned_at": null
+    },
+    {
+        "id_detail": 6,
+        "id_transaction": 6,
+        "id_ebook": 2,
+        "start_date": "2026-11-17 14:36:01",
+        "due_date": "2026-11-24 14:36:01",
+        "status": "active",
+        "returned_at": null
+    },
+    {
+        "id_detail": 7,
+        "id_transaction": 7,
+        "id_ebook": 1,
+        "start_date": "2026-11-17 14:38:28",
+        "due_date": "2026-11-24 14:38:28",
+        "status": "active",
+        "returned_at": null
+    },
+    {
+        "id_detail": 8,
+        "id_transaction": 8,
+        "id_ebook": 1,
+        "start_date": "2026-11-17 14:38:58",
+        "due_date": "2026-11-24 14:38:58",
+        "status": "returned",
+        "returned_at": "2026-11-17 14:40:20"
+    },
+    {
+        "id_detail": 9,
+        "id_transaction": 8,
+        "id_ebook": 2,
+        "start_date": "2026-11-17 14:38:58",
+        "due_date": "2026-11-24 14:38:58",
+        "status": "returned",
+        "returned_at": "2026-11-17 14:40:20"
+    },
+    {
+        "id_detail": 10,
+        "id_transaction": 9,
+        "id_ebook": 1,
+        "start_date": "2026-11-17 14:40:44",
+        "due_date": "2026-11-24 14:40:44",
+        "status": "active",
+        "returned_at": null
+    },
+    {
+        "id_detail": 11,
+        "id_transaction": 9,
+        "id_ebook": 2,
+        "start_date": "2026-11-17 14:40:44",
+        "due_date": "2026-11-24 14:40:44",
+        "status": "returned",
+        "returned_at": "2026-11-17 14:42:24"
     }
 ]
