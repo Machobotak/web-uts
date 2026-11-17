@@ -658,6 +658,12 @@ class TransactionService
 
             $detail = new TransactionDetail($data);
 
+            if ($detail->isCancelled()) {
+                throw new \InvalidArgumentException(
+                    'Ebook pada transaksi ini sudah dibatalkan sehingga tidak dapat dikembalikan.'
+                );
+            }
+
             if ($detail->isReturned()) {
                 throw new \InvalidArgumentException(
                     'Ebook pada transaksi ini sudah dikembalikan.'
@@ -699,6 +705,75 @@ class TransactionService
     }
 
     /**
+     * Menandai seluruh ebook pada satu transaksi sudah dikembalikan.
+     * Detail yang sudah returned atau cancelled dilewati sehingga
+     * pengembalian bersifat idempoten.
+     *
+     * @return TransactionDetail[]
+     */
+    public function returnTransaction(int $idTransaction): array
+    {
+        $transaction = $this->findTransactionById($idTransaction);
+
+        if ($transaction === null) {
+            throw new \InvalidArgumentException('Transaksi tidak ditemukan.');
+        }
+
+        if (($transaction['status'] ?? '') === Transaction::STATUS_COMPLETED) {
+            throw new \InvalidArgumentException(
+                'Transaksi ini sudah selesai, seluruh ebook telah dikembalikan.'
+            );
+        }
+
+        if (($transaction['status'] ?? '') !== Transaction::STATUS_APPROVED) {
+            throw new \InvalidArgumentException(
+                'Transaksi belum disetujui sehingga ebook belum dapat dikembalikan.'
+            );
+        }
+
+        $details = $this->storage->read($this->detailFile);
+        $returned = [];
+        $restoredEbooks = [];
+        $returnedAt = date('Y-m-d H:i:s');
+
+        foreach ($details as $index => $data) {
+            if ((int) ($data['id_transaction'] ?? 0) !== $idTransaction) {
+                continue;
+            }
+
+            $detail = new TransactionDetail($data);
+
+            if (!$detail->isHoldingLicense()) {
+                continue;
+            }
+
+            $detail->markReturned($returnedAt);
+
+            $details[$index] = $detail->toArray();
+            $returned[] = $detail;
+            $restoredEbooks[] = $detail->getIdEbook();
+        }
+
+        if (empty($returned)) {
+            throw new \InvalidArgumentException(
+                'Tidak ada ebook yang masih dipinjam pada transaksi ini.'
+            );
+        }
+
+        $this->storage->write($this->detailFile, $details);
+
+        // Lisensi dipulihkan setelah detail tersimpan agar jumlah
+        // pengembalian dan sisa lisensi tetap konsisten.
+        foreach ($restoredEbooks as $idEbook) {
+            $this->adjustEbookLicense($idEbook, 1);
+        }
+
+        $this->completeTransactionIfDone($idTransaction);
+
+        return $returned;
+    }
+
+    /**
      * Menandai transaksi selesai bila seluruh detailnya sudah dikembalikan.
      */
     private function completeTransactionIfDone(int $idTransaction): void
@@ -711,6 +786,12 @@ class TransactionService
 
         foreach ($details as $data) {
             $detail = new TransactionDetail($data);
+
+            // Detail yang dibatalkan tidak lagi menahan lisensi sehingga
+            // tidak menghalangi transaksi dianggap selesai.
+            if ($detail->isCancelled()) {
+                continue;
+            }
 
             if (!$detail->isReturned()) {
                 return;
