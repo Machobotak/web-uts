@@ -390,6 +390,10 @@ a:hover {
     margin-bottom: 16px;
 }
 
+.field[hidden] {
+    display: none;
+}
+
 .field > label,
 .field > .label {
     font-size: 0.8rem;
