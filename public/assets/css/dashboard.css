@@ -484,6 +484,62 @@
     font-variant-numeric: tabular-nums;
 }
 
+/* ---------------------------- Dialog konfirmasi */
+
+.dialog {
+    width: min(440px, calc(100vw - 32px));
+    max-height: calc(100vh - 32px);
+    margin: auto;
+    padding: 22px;
+    overflow-y: auto;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--surface);
+    color: var(--ink);
+    box-shadow: var(--shadow-float);
+}
+
+.dialog::backdrop {
+    background: rgba(23, 37, 84, 0.45);
+}
+
+.dialog-head {
+    display: grid;
+    gap: 6px;
+    margin-bottom: 18px;
+}
+
+.dialog-eyebrow {
+    color: var(--muted);
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.dialog-head h2 {
+    font-size: 1.15rem;
+}
+
+.dialog-note {
+    color: var(--text-soft);
+    font-size: 0.88rem;
+}
+
+.dialog .field {
+    margin-bottom: 16px;
+}
+
+.dialog .notice {
+    margin-bottom: 16px;
+}
+
+.dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
 /* ------------------------------- Editor baris */
 
 .editor-row td {

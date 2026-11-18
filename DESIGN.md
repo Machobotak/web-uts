@@ -236,6 +236,10 @@ Aksi destruktif selalu `danger` dan dipisah dari aksi utama; hanya satu tombol `
 
 Ledger, bukan kartu: kepala tabel uppercase 0.68rem berwarna `#6b7280` dengan garis bawah `#d1d5db`; baris berpemisah `#e5e7eb`; hover baris memakai `#f5f7fb`; sel pertama tanpa padding kiri. ID berupa `#11` mono; judul tebal dengan ID di baris kedua.
 
+### Dialog
+
+`<dialog class="dialog">` native untuk konfirmasi tindakan yang mengubah data — bukan editor baris di dalam tabel. Panel putih radius 12px, padding 22px, garis 1px, `--shadow-float`, lebar maksimum 440px, di atas backdrop `rgba(23, 37, 84, 0.45)`. Susunan: `.dialog-eyebrow` small-caps 0.68rem untuk konteks (mis. `Transaksi #10`), `h2` pertanyaan singkat, `.dialog-note` berisi ringkasan target, field opsional, lalu `.dialog-actions` rata kanan dengan Batal (`secondary`) dan aksi utama (`primary`, atau `danger` untuk penolakan). Ditutup lewat Batal, Escape, atau klik backdrop; fokus kembali ke tombol pemicu.
+
 ### Due meter
 
 `.due` = grid dengan tanggal tabular dan catatan; `.meter` = track 999px setinggi 4px berisi sisa masa pinjam. `is-low` memakai aksen, `is-overdue` memakai `#991b1b` untuk teks dan meter. Meter selalu disertai teks sisa hari — warna bukan satu-satunya penanda.

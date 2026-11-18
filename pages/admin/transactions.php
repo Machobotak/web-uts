@@ -173,52 +173,58 @@ require __DIR__ . '/../partials/dashboard-header.php';
                                         type="button"
                                         class="btn btn-primary btn-sm approve-transaction"
                                         data-id="<?= $transactionId ?>"
+                                        data-member="<?= e($memberName) ?>"
+                                        data-ebooks="<?= e(implode(', ', $ebookTitles)) ?>"
                                     >Setujui</button>
 
                                     <button
                                         type="button"
                                         class="btn btn-danger btn-sm reject-transaction"
                                         data-id="<?= $transactionId ?>"
+                                        data-member="<?= e($memberName) ?>"
+                                        data-ebooks="<?= e(implode(', ', $ebookTitles)) ?>"
                                     >Tolak</button>
                                 <?php endif; ?>
                             </div>
                         </td>
                     </tr>
                 <?php endforeach; ?>
-                    <template id="rejectEditor">
-                        <tr class="editor-row">
-                            <td colspan="7">
-                                <form class="row-reject">
-                                    <div class="field">
-                                        <label for="rejectNotes">
-                                            Alasan penolakan (opsional)
-                                        </label>
-                                        <input
-                                            id="rejectNotes"
-                                            name="notes"
-                                            type="text"
-                                            maxlength="255"
-                                            placeholder="Mis. stok lisensi habis"
-                                        >
-                                    </div>
-                                    <div class="row-actions">
-                                        <button type="submit" class="btn btn-danger">
-                                            Tolak pengajuan
-                                        </button>
-                                        <button type="button" class="btn btn-secondary" data-cancel>
-                                            Batal
-                                        </button>
-                                    </div>
-                                </form>
-                            </td>
-                        </tr>
-                    </template>
             <?php endif; ?>
             </tbody>
         </table>
     </div>
 
 </section>
+
+<dialog id="decisionDialog" class="dialog" aria-labelledby="decisionTitle">
+    <form id="decisionForm" class="dialog-form" novalidate>
+        <div class="dialog-head">
+            <p class="dialog-eyebrow" id="decisionEyebrow">Konfirmasi</p>
+            <h2 id="decisionTitle">Setujui pengajuan?</h2>
+            <p class="dialog-note" id="decisionNote"></p>
+        </div>
+
+        <div class="field" id="decisionNotesField" hidden>
+            <label for="decisionNotes">Alasan penolakan (opsional)</label>
+            <input
+                id="decisionNotes"
+                name="notes"
+                type="text"
+                maxlength="255"
+                placeholder="Mis. stok lisensi habis"
+            >
+        </div>
+
+        <p id="decisionError" class="notice notice-error" hidden></p>
+
+        <div class="dialog-actions">
+            <button type="button" class="btn btn-secondary" data-close>Batal</button>
+            <button type="submit" class="btn btn-primary" id="decisionSubmit">
+                Setujui
+            </button>
+        </div>
+    </form>
+</dialog>
 
 <script>
 const messageBox = document.getElementById('message');
@@ -250,64 +256,111 @@ async function sendRequest(url, data) {
     return result;
 }
 
+const dialog = document.getElementById('decisionDialog');
+const dialogForm = document.getElementById('decisionForm');
+const dialogEyebrow = document.getElementById('decisionEyebrow');
+const dialogTitle = document.getElementById('decisionTitle');
+const dialogNote = document.getElementById('decisionNote');
+const dialogNotesField = document.getElementById('decisionNotesField');
+const dialogNotes = document.getElementById('decisionNotes');
+const dialogError = document.getElementById('decisionError');
+const dialogSubmit = document.getElementById('decisionSubmit');
+
+let pending = null;
+let submitting = false;
+
+function openDecision(button, mode) {
+    pending = {id: button.dataset.id, mode: mode};
+    submitting = false;
+
+    const isReject = mode === 'reject';
+    const ebooks = button.dataset.ebooks || 'Ebook';
+
+    dialogEyebrow.textContent = 'Transaksi #' + button.dataset.id;
+    dialogTitle.textContent = isReject
+        ? 'Tolak pengajuan peminjaman?'
+        : 'Setujui pengajuan peminjaman?';
+    dialogNote.textContent = button.dataset.member + ' — ' + ebooks;
+    dialogNotesField.hidden = !isReject;
+    dialogNotes.value = '';
+    dialogError.hidden = true;
+    dialogSubmit.textContent = isReject ? 'Tolak pengajuan' : 'Setujui';
+    dialogSubmit.className = 'btn ' + (isReject ? 'btn-danger' : 'btn-primary');
+
+    dialog.showModal();
+
+    if (isReject) {
+        dialogNotes.focus();
+    } else {
+        dialogSubmit.focus();
+    }
+}
+
 document.querySelectorAll('.approve-transaction').forEach(button => {
-    button.addEventListener('click', async function () {
-        if (!window.armAction(this, 'Klik lagi untuk menyetujui')) {
-            return;
-        }
-
-        const data = new FormData();
-        data.append('id_transaction', this.dataset.id);
-
-        try {
-            const result = await sendRequest(approveUrl, data);
-            showMessage(result.message, true);
-            setTimeout(() => window.location.reload(), 600);
-        } catch (error) {
-            showMessage(error.message, false);
-        }
+    button.addEventListener('click', function () {
+        openDecision(this, 'approve');
     });
 });
 
-const rejectEditor = document.getElementById('rejectEditor');
-
 document.querySelectorAll('.reject-transaction').forEach(button => {
     button.addEventListener('click', function () {
-        document.querySelectorAll('.editor-row').forEach(row => row.remove());
-
-        if (!rejectEditor) {
-            return;
-        }
-
-        const row = this.closest('tr');
-        const editor = rejectEditor.content.firstElementChild.cloneNode(true);
-        const form = editor.querySelector('form');
-        const notes = form.elements.notes;
-
-        row.after(editor);
-        notes.focus();
-
-        form.querySelector('[data-cancel]').addEventListener('click', function () {
-            editor.remove();
-            button.focus();
-        });
-
-        form.addEventListener('submit', async function (event) {
-            event.preventDefault();
-
-            const data = new FormData();
-            data.append('id_transaction', button.dataset.id);
-            data.append('notes', notes.value.trim());
-
-            try {
-                const result = await sendRequest(rejectUrl, data);
-                showMessage(result.message, true);
-                setTimeout(() => window.location.reload(), 600);
-            } catch (error) {
-                showMessage(error.message, false);
-            }
-        });
+        openDecision(this, 'reject');
     });
+});
+
+dialog.querySelector('[data-close]').addEventListener('click', function () {
+    dialog.close();
+});
+
+// Klik latar di luar panel menutup dialog.
+dialog.addEventListener('click', function (event) {
+    if (event.target === dialog) {
+        dialog.close();
+    }
+});
+
+dialog.addEventListener('close', function () {
+    pending = null;
+    submitting = false;
+});
+
+dialogForm.addEventListener('submit', async function (event) {
+    event.preventDefault();
+
+    if (!pending || submitting) {
+        return;
+    }
+
+    submitting = true;
+    dialogSubmit.disabled = true;
+    dialogSubmit.textContent = 'Memproses…';
+    dialogError.hidden = true;
+
+    const data = new FormData();
+    data.append('id_transaction', pending.id);
+
+    if (pending.mode === 'reject') {
+        data.append('notes', dialogNotes.value.trim());
+    }
+
+    try {
+        const result = await sendRequest(
+            pending.mode === 'reject' ? rejectUrl : approveUrl,
+            data
+        );
+
+        dialog.close();
+        showMessage(result.message, true);
+        setTimeout(() => window.location.reload(), 600);
+    } catch (error) {
+        dialogError.textContent = error.message;
+        dialogError.hidden = false;
+        submitting = false;
+        dialogSubmit.disabled = false;
+        dialogSubmit.textContent = pending.mode === 'reject'
+            ? 'Tolak pengajuan'
+            : 'Setujui';
+    }
 });
 </script>
 
