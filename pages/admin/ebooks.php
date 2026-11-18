@@ -23,8 +23,8 @@ $editId = filter_input(INPUT_GET, 'edit', FILTER_VALIDATE_INT);
 $editEbook = $editId ? $catalogService->findEbookById($editId) : null;
 
 $pageTitle = 'Manajemen Ebook | Digital Library';
-$pageHeading = 'Manajemen Ebook';
-$pageSubtitle = 'Tambah koleksi ebook, atur kategori, dan kelola lisensinya.';
+$pageHeading = 'Manajemen ebook';
+$pageSubtitle = 'Tambah koleksi, atur kategori, dan pantau sisa lisensi.';
 $activeNav = 'ebooks';
 $userName = $admin->getName();
 $userRole = 'admin';
@@ -38,7 +38,13 @@ require __DIR__ . '/../partials/dashboard-header.php';
 <section class="panel">
 
     <div class="panel-head">
-        <h2><?= $editEbook ? 'Edit Ebook' : 'Tambah Ebook Baru' ?></h2>
+        <h2><?= $editEbook ? 'Edit ebook' : 'Tambah ebook baru' ?></h2>
+
+        <?php if ($editEbook): ?>
+            <span class="badge badge-completed">
+                ID <?= e($editEbook['id_ebook'] ?? '') ?>
+            </span>
+        <?php endif; ?>
     </div>
 
     <form id="ebookForm" enctype="multipart/form-data">
@@ -201,7 +207,7 @@ require __DIR__ . '/../partials/dashboard-header.php';
         </div>
 
         <?php if ($editEbook && ($editEbook['file_path'] ?? '') !== ''): ?>
-            <p class="subtitle">
+            <p class="hint">
                 File ebook sudah tersedia. Kosongkan input file bila tidak ingin menggantinya.
             </p>
         <?php endif; ?>
@@ -226,19 +232,20 @@ require __DIR__ . '/../partials/dashboard-header.php';
 <section class="panel">
 
     <div class="panel-head">
-        <h2>Daftar Ebook (<?= count($ebooks) ?>)</h2>
+        <h2>Daftar ebook</h2>
+        <span class="hint"><?= count($ebooks) ?> judul di rak</span>
     </div>
 
     <div class="table-wrap">
         <table class="table">
             <thead>
                 <tr>
-                    <th>No</th>
-                    <th>Judul Ebook</th>
+                    <th class="number">No</th>
+                    <th>Judul</th>
                     <th>Penulis</th>
                     <th>Kategori</th>
                     <th>Status</th>
-                    <th>Lisensi</th>
+                    <th class="number">Lisensi</th>
                     <th>Aksi</th>
                 </tr>
             </thead>
@@ -250,34 +257,42 @@ require __DIR__ . '/../partials/dashboard-header.php';
                 </tr>
             <?php else: ?>
                 <?php foreach ($ebooks as $index => $ebook): ?>
-                    <?php $status = $ebook['status'] ?? 'available'; ?>
+                    <?php
+                    $status = $ebook['status'] ?? 'available';
+                    $licenseLimit = (int) ($ebook['license_limit'] ?? 0);
+                    $licenseTotal = (int) ($ebook['license_total'] ?? 0);
+                    ?>
                     <tr>
-                        <td><?= $index + 1 ?></td>
-                        <td><?= e($ebook['title'] ?? '-') ?></td>
+                        <td class="number"><?= $index + 1 ?></td>
+                        <td>
+                            <strong><?= e($ebook['title'] ?? '-') ?></strong>
+                            <span class="id">#<?= (int) ($ebook['id_ebook'] ?? 0) ?></span>
+                        </td>
                         <td><?= e($ebook['author'] ?? '-') ?></td>
                         <td><?= e($categoryNames[(int) ($ebook['id_category'] ?? 0)] ?? '-') ?></td>
                         <td>
                             <span class="badge <?= $status === 'available'
                                 ? 'badge-approved'
                                 : 'badge-rejected' ?>">
-                                <?= $status === 'available' ? 'Tersedia' : 'Tidak Tersedia' ?>
+                                <?= $status === 'available' ? 'Tersedia' : 'Habis' ?>
                             </span>
                         </td>
                         <td class="number">
-                            <?= (int) ($ebook['license_limit'] ?? 0) ?>
-                            /
-                            <?= (int) ($ebook['license_total'] ?? 0) ?>
+                            <span class="license">
+                                <?= $licenseLimit ?>/<?= $licenseTotal ?>
+                                <small>salinan</small>
+                            </span>
                         </td>
                         <td>
                             <div class="actions">
                                 <a
-                                    class="btn btn-secondary"
+                                    class="btn btn-secondary btn-sm"
                                     href="<?= e(app_url('pages/admin/ebooks.php?edit=' . urlencode((string) ($ebook['id_ebook'] ?? '')))) ?>"
                                 >Edit</a>
 
                                 <button
                                     type="button"
-                                    class="btn btn-outline delete-ebook"
+                                    class="btn btn-danger btn-sm delete-ebook"
                                     data-id="<?= (int) ($ebook['id_ebook'] ?? 0) ?>"
                                 >Hapus</button>
                             </div>
@@ -302,6 +317,10 @@ function showMessage(text, success) {
     messageBox.textContent = text;
     messageBox.className = 'notice ' + (success ? 'notice-success' : 'notice-error');
     messageBox.hidden = false;
+
+    if (success && window.flashMessage) {
+        window.flashMessage(text, true);
+    }
 }
 
 async function sendRequest(url, formData) {
@@ -339,7 +358,7 @@ document.getElementById('ebookForm').addEventListener('submit', async function (
 
 document.querySelectorAll('.delete-ebook').forEach(button => {
     button.addEventListener('click', async function () {
-        if (!confirm('Yakin ingin menghapus ebook ini?')) return;
+        if (!window.armAction(this, 'Klik lagi untuk menghapus')) return;
 
         const formData = new FormData();
         formData.append('id_ebook', this.dataset.id);

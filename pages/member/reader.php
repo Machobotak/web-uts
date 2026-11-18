@@ -2,95 +2,176 @@
 
 require_once __DIR__ . '/../../config/bootstrap.php';
 
-use App\Models\TransactionDetail;
 use App\Services\AuthService;
 use App\Services\CatalogService;
 use App\Services\TransactionService;
+use App\Support\Shelf;
 use App\Middleware\AuthMiddleware;
 
 $authService = new AuthService($storage);
 $middleware = new AuthMiddleware($authService);
-
-// Halaman hanya untuk member yang sudah login.
-$member = $middleware->requireRole('member');
-
-$ebookId = (int) ($_GET['id'] ?? 0);
-
 $catalogService = new CatalogService($storage);
 $transactionService = new TransactionService($storage);
 
+$currentUser = $middleware->getCurrentUser();
+
+// Tamu diarahkan masuk; pembaca hanya untuk akun member.
+if ($currentUser === null) {
+    header('Location: ' . app_url('pages/auth/login.php'));
+    exit;
+}
+
+/**
+ * Menampilkan kegagalan akses di dalam tata letak aplikasi,
+ * bukan sebagai teks polos tanpa jalan keluar.
+ */
+$renderError = function (
+    int $status,
+    string $heading,
+    string $message,
+    array $actions
+) use ($currentUser): void {
+    http_response_code($status);
+
+    $pageTitle = $heading . ' | Digital Library';
+    $pageHeading = $heading;
+    $pageSubtitle = '';
+    $userRole = $currentUser->getRole();
+    $userName = $currentUser->getName();
+    $activeNav = $userRole === 'admin' ? 'dashboard' : 'borrowings';
+
+    require __DIR__ . '/../partials/dashboard-header.php';
+    ?>
+    <section class="panel">
+
+        <div class="panel-head">
+            <h2><?= e($heading) ?></h2>
+        </div>
+
+        <p class="status-note"><?= e($message) ?></p>
+
+        <div class="actions">
+            <?php foreach ($actions as $action): ?>
+                <a
+                    class="btn <?= !empty($action['primary']) ? 'btn-primary' : 'btn-secondary' ?>"
+                    href="<?= e($action['url']) ?>"
+                ><?= e($action['label']) ?></a>
+            <?php endforeach; ?>
+        </div>
+
+    </section>
+    <?php
+    require __DIR__ . '/../partials/dashboard-footer.php';
+    exit;
+};
+
+if ($currentUser->getRole() !== 'member') {
+    $renderError(
+        403,
+        'Halaman ini untuk member',
+        'Akun admin mengelola koleksi dan transaksi, bukan meminjam ebook.',
+        [
+            [
+                'label' => 'Buka dashboard admin',
+                'url' => app_url('pages/admin/dashboard.php'),
+                'primary' => true,
+            ],
+        ]
+    );
+}
+
+$member = $currentUser;
+$ebookId = (int) ($_GET['id'] ?? 0);
 $ebook = $catalogService->findEbookById($ebookId);
 
 if ($ebook === null) {
-    http_response_code(404);
-    exit('Ebook tidak ditemukan.');
+    $renderError(
+        404,
+        'Ebook tidak ditemukan',
+        'Judul ini tidak ada di rak, atau sudah dihapus dari koleksi.',
+        [
+            [
+                'label' => 'Kembali ke rak peminjaman',
+                'url' => app_url('pages/member/borrowings.php'),
+                'primary' => true,
+            ],
+            [
+                'label' => 'Buka katalog',
+                'url' => app_url('pages/public/catalog.php'),
+            ],
+        ]
+    );
 }
 
 // Member hanya boleh membaca ebook dari peminjaman yang masih berlaku.
-$access = null;
-$dueDate = '';
+$loan = $transactionService->findHeldLoan($member->getIdUser(), $ebookId);
 
-foreach ($transactionService->getTransactionsByUser($member->getIdUser()) as $transaction) {
-    if (($transaction['status'] ?? '') !== 'approved') {
-        continue;
-    }
-
-    $details = $transactionService->getTransactionDetails(
-        (int) ($transaction['id_transaction'] ?? 0)
+if ($loan === null) {
+    $renderError(
+        403,
+        'Peminjaman belum aktif',
+        'Ebook ini belum ada di peminjaman yang disetujui untuk akunmu. '
+            . 'Ajukan pinjam lebih dulu, lalu buka lagi setelah pengajuan disetujui.',
+        [
+            [
+                'label' => 'Ajukan pinjaman',
+                'url' => app_url('pages/member/borrowings.php?pilih=' . $ebookId),
+                'primary' => true,
+            ],
+            [
+                'label' => 'Lihat pengajuan saya',
+                'url' => app_url('pages/member/borrowings.php'),
+            ],
+        ]
     );
-
-    foreach ($details as $detail) {
-        if ((int) ($detail['id_ebook'] ?? 0) !== $ebookId) {
-            continue;
-        }
-
-        $loan = new TransactionDetail($detail);
-
-        if (!$loan->isHoldingLicense()) {
-            continue;
-        }
-
-        if ($loan->isOverdue()) {
-            $access = 'expired';
-            continue;
-        }
-
-        $access = 'ok';
-        $dueDate = (string) ($detail['due_date'] ?? '');
-        break 2;
-    }
 }
 
-if ($access === null) {
-    http_response_code(403);
-    exit('Akses membaca ditolak. Ebook belum disetujui untuk akun Anda.');
+$dueDate = (string) ($loan['detail']['due_date'] ?? '');
+
+if ($loan['overdue']) {
+    $renderError(
+        403,
+        'Masa pinjam berakhir',
+        'Batas baca ebook ini sudah lewat pada ' . Shelf::date($dueDate)
+            . '. Ajukan pinjaman baru untuk membukanya lagi.',
+        [
+            [
+                'label' => 'Ajukan pinjaman baru',
+                'url' => app_url('pages/member/borrowings.php?pilih=' . $ebookId),
+                'primary' => true,
+            ],
+            [
+                'label' => 'Buka rak peminjaman',
+                'url' => app_url('pages/member/borrowings.php'),
+            ],
+        ]
+    );
 }
 
-if ($access === 'expired') {
-    http_response_code(403);
-    exit('Masa peminjaman ebook ini sudah berakhir. Ajukan peminjaman baru untuk membacanya lagi.');
-}
+// Berkas hanya dianggap tersedia bila lolos pemeriksaan CatalogService.
+$filePath = $catalogService->resolveEbookFile($ebook);
+$extension = strtolower(
+    pathinfo((string) ($ebook['file_path'] ?? ''), PATHINFO_EXTENSION)
+);
 
-// file_path hanya menyimpan nama file di dalam storage/ebooks.
-$baseDirectory = realpath(__DIR__ . '/../../storage/ebooks');
-$fileName = basename((string) ($ebook['file_path'] ?? ''));
-$filePath = $baseDirectory === false || $fileName === ''
-    ? false
-    : realpath($baseDirectory . DIRECTORY_SEPARATOR . $fileName);
-
-$extension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
-
-if (
-    $filePath === false
-    || !is_file($filePath)
-    || !in_array($extension, ['pdf', 'epub'], true)
-    || !str_starts_with(
-        strtolower($filePath),
-        strtolower($baseDirectory . DIRECTORY_SEPARATOR)
-    )
-) {
-    http_response_code(404);
-    exit('File ebook tidak tersedia.');
+if ($filePath === null) {
+    $renderError(
+        404,
+        'Berkas ebook tidak tersedia',
+        'Berkas untuk judul ini hilang atau rusak di penyimpanan. '
+            . 'Hubungi admin perpustakaan agar salinannya dipulihkan.',
+        [
+            [
+                'label' => 'Kembali ke rak peminjaman',
+                'url' => app_url('pages/member/borrowings.php'),
+                'primary' => true,
+            ],
+            [
+                'label' => 'Buka katalog',
+                'url' => app_url('pages/public/catalog.php'),
+            ],
+        ]
+    );
 }
 
 // Mode stream: mengirim file setelah hak akses diperiksa.
@@ -120,65 +201,54 @@ if (($_GET['stream'] ?? '') === '1') {
     exit;
 }
 
+$categoryNames = $catalogService->getCategoryNameMap();
+$category = $categoryNames[(int) ($ebook['id_category'] ?? 0)] ?? '';
+
+$layoutMode = 'reader';
 $pageTitle = $ebook['title'] . ' | Digital Library';
 $pageHeading = $ebook['title'];
-$pageSubtitle = 'Penulis: ' . ($ebook['author'] ?? '-')
-    . ' — batas baca: '
-    . ($dueDate !== '' ? date('d M Y H:i', strtotime($dueDate)) : '-') . '.';
+$pageSubtitle = '';
 $activeNav = 'borrowings';
 $userName = $member->getName();
 $userRole = 'member';
+$backUrl = app_url('pages/member/borrowings.php');
+$readerMeta = 'Nomor panggil ' . Shelf::code($category, $ebookId)
+    . ' · ' . ($ebook['author'] ?? 'Tanpa penulis')
+    . ($dueDate !== '' ? ' · batas baca ' . Shelf::date($dueDate) : '');
 
 require __DIR__ . '/../partials/dashboard-header.php';
 
 ?>
 
-<section class="panel">
-
-    <div class="panel-head">
-        <h2>Pembaca Ebook</h2>
-
-        <a
-            class="btn btn-outline"
-            href="<?= e(app_url('pages/member/borrowings.php')) ?>"
-        >Kembali</a>
-    </div>
-
-    <?php if ($extension === 'pdf'): ?>
-        <?php
-        // ?v=filemtime agar perubahan berkas pembaca langsung dipakai browser.
-        $assetVersion = static function (string $path): string {
-            $full = __DIR__ . '/../../' . $path;
-            $time = is_file($full) ? filemtime($full) : false;
-
-            return app_url($path) . ($time === false ? '' : '?v=' . $time);
-        };
-        ?>
-
-        <div
-            class="reader"
-            id="pdfViewer"
-            data-src="<?= e(app_url('pages/member/reader.php?id=' . $ebookId . '&stream=1')) ?>"
-            data-worker="<?= e($assetVersion('public/assets/pdfjs/pdf.worker.min.js')) ?>"
-        >
-            <div class="reader-bar">
-                <button type="button" class="btn btn-outline" id="pdfPrev" disabled>Sebelumnya</button>
-                <span class="reader-page" id="pdfPage">Memuat ebook...</span>
-                <button type="button" class="btn btn-outline" id="pdfNext" disabled>Berikutnya</button>
-            </div>
-
-            <canvas id="pdfCanvas"></canvas>
+<?php if ($extension === 'pdf'): ?>
+    <div
+        class="reader"
+        id="pdfViewer"
+        data-src="<?= e(app_url('pages/member/reader.php?id=' . $ebookId . '&stream=1')) ?>"
+        data-worker="<?= e(asset_url('public/assets/pdfjs/pdf.worker.min.js')) ?>"
+    >
+        <div class="reader-bar">
+            <button type="button" class="btn btn-secondary btn-sm" id="pdfPrev" disabled>
+                <?= icon('chevron-left') ?>
+                Sebelumnya
+            </button>
+            <span class="reader-page" id="pdfPage">Memuat ebook…</span>
+            <button type="button" class="btn btn-secondary btn-sm" id="pdfNext" disabled>
+                Berikutnya
+                <?= icon('chevron-right') ?>
+            </button>
         </div>
 
-        <script src="<?= e($assetVersion('public/assets/pdfjs/pdf.min.js')) ?>"></script>
-        <script src="<?= e($assetVersion('public/assets/js/reader.js')) ?>"></script>
-    <?php else: ?>
-        <p class="empty">
-            Ebook ini berformat EPUB dan tidak bisa ditampilkan langsung di browser.
-            Hubungi admin perpustakaan untuk ketersediaan versi PDF.
-        </p>
-    <?php endif; ?>
+        <canvas id="pdfCanvas"></canvas>
+    </div>
 
-</section>
+    <script src="<?= e(asset_url('public/assets/pdfjs/pdf.min.js')) ?>"></script>
+    <script src="<?= e(asset_url('public/assets/js/reader.js')) ?>"></script>
+<?php else: ?>
+    <p class="empty">
+        Ebook ini berformat EPUB dan tidak bisa ditampilkan langsung di browser.
+        Hubungi admin perpustakaan untuk ketersediaan versi PDF.
+    </p>
+<?php endif; ?>
 
 <?php require __DIR__ . '/../partials/dashboard-footer.php'; ?>

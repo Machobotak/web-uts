@@ -1,9 +1,9 @@
 <?php
 
 require_once __DIR__ . '/../../config/bootstrap.php';
-
 use App\Services\AuthService;
 use App\Services\TransactionService;
+use App\Support\Shelf;
 use App\Middleware\AuthMiddleware;
 
 $authService = new AuthService($storage);
@@ -61,8 +61,8 @@ $rejected = count(array_filter(
 ));
 
 $pageTitle = 'Manajemen Transaksi | Digital Library';
-$pageHeading = 'Manajemen Transaksi';
-$pageSubtitle = 'Kelola pengajuan peminjaman ebook anggota.';
+$pageHeading = 'Manajemen transaksi';
+$pageSubtitle = 'Putuskan pengajuan peminjaman dan pantau tenggatnya.';
 $activeNav = 'transactions';
 $userName = $admin->getName();
 $userRole = 'admin';
@@ -73,16 +73,17 @@ require __DIR__ . '/../partials/dashboard-header.php';
 
 <div id="message" class="notice" hidden></div>
 
-<section class="stats">
+<section class="stats" aria-label="Ringkasan transaksi">
 
     <div class="stat">
-        <p class="stat-label">Total Transaksi</p>
+        <p class="stat-label">Total transaksi</p>
         <p class="stat-value"><?= count($transactions) ?></p>
     </div>
 
     <div class="stat">
-        <p class="stat-label">Menunggu Persetujuan</p>
+        <p class="stat-label">Menunggu</p>
         <p class="stat-value"><?= $pending ?></p>
+        <p class="stat-note">perlu diputuskan</p>
     </div>
 
     <div class="stat">
@@ -100,7 +101,8 @@ require __DIR__ . '/../partials/dashboard-header.php';
 <section class="panel">
 
     <div class="panel-head">
-        <h2>Daftar Transaksi Peminjaman</h2>
+        <h2>Daftar transaksi</h2>
+        <span class="hint">Terbaru lebih dulu</span>
     </div>
 
     <div class="table-wrap">
@@ -108,10 +110,10 @@ require __DIR__ . '/../partials/dashboard-header.php';
             <thead>
                 <tr>
                     <th>ID</th>
-                    <th>Nama Member</th>
+                    <th>Member</th>
                     <th>Ebook</th>
-                    <th>Tanggal Pinjam</th>
-                    <th>Jatuh Tempo</th>
+                    <th>Pinjam</th>
+                    <th>Jatuh tempo</th>
                     <th>Status</th>
                     <th>Aksi</th>
                 </tr>
@@ -128,23 +130,32 @@ require __DIR__ . '/../partials/dashboard-header.php';
                     $transactionId = (int) ($transaction['id_transaction'] ?? 0);
                     $status = $transaction['status'] ?? 'pending';
 
-                    $ebookTitles = array_filter(array_map(
+                    $ebookTitles = array_values(array_filter(array_map(
                         fn($detail) => $detail['ebook_title'] ?? '',
                         $transaction['details']
-                    ));
+                    )));
 
                     $memberName = $transaction['member']['name']
                         ?? 'Member tidak ditemukan';
 
                     $startDate = $transaction['details'][0]['start_date']
-                        ?? ($transaction['create_at'] ?? '-');
+                        ?? ($transaction['create_at'] ?? '');
                     ?>
                     <tr>
-                        <td>#<?= $transactionId ?></td>
+                        <td class="id">#<?= $transactionId ?></td>
                         <td><?= e($memberName) ?></td>
-                        <td><?= e(implode(', ', $ebookTitles) ?: '-') ?></td>
-                        <td><?= e($startDate) ?></td>
-                        <td><?= e($transaction['due_date'] !== '' ? $transaction['due_date'] : '-') ?></td>
+                        <td>
+                            <?= e($ebookTitles[0] ?? '—') ?>
+                            <?php if (count($ebookTitles) > 1): ?>
+                                <span class="id">+<?= count($ebookTitles) - 1 ?></span>
+                            <?php endif; ?>
+                        </td>
+                        <td class="number"><?= e(Shelf::date($startDate)) ?></td>
+                        <td class="number">
+                            <?= e($transaction['due_date'] !== ''
+                                ? Shelf::date($transaction['due_date'])
+                                : '—') ?>
+                        </td>
                         <td>
                             <span class="badge badge-<?= e($status) ?>">
                                 <?= e($statusLabels[$status] ?? $status) ?>
@@ -153,20 +164,20 @@ require __DIR__ . '/../partials/dashboard-header.php';
                         <td>
                             <div class="actions">
                                 <a
-                                    class="btn btn-secondary"
+                                    class="btn btn-secondary btn-sm"
                                     href="<?= e(app_url('pages/admin/transaction-detail.php?id=' . $transactionId)) ?>"
                                 >Detail</a>
 
                                 <?php if ($status === 'pending'): ?>
                                     <button
                                         type="button"
-                                        class="btn btn-primary approve-transaction"
+                                        class="btn btn-primary btn-sm approve-transaction"
                                         data-id="<?= $transactionId ?>"
                                     >Setujui</button>
 
                                     <button
                                         type="button"
-                                        class="btn btn-outline reject-transaction"
+                                        class="btn btn-danger btn-sm reject-transaction"
                                         data-id="<?= $transactionId ?>"
                                     >Tolak</button>
                                 <?php endif; ?>
@@ -174,6 +185,34 @@ require __DIR__ . '/../partials/dashboard-header.php';
                         </td>
                     </tr>
                 <?php endforeach; ?>
+                    <template id="rejectEditor">
+                        <tr class="editor-row">
+                            <td colspan="7">
+                                <form class="row-reject">
+                                    <div class="field">
+                                        <label for="rejectNotes">
+                                            Alasan penolakan (opsional)
+                                        </label>
+                                        <input
+                                            id="rejectNotes"
+                                            name="notes"
+                                            type="text"
+                                            maxlength="255"
+                                            placeholder="Mis. stok lisensi habis"
+                                        >
+                                    </div>
+                                    <div class="row-actions">
+                                        <button type="submit" class="btn btn-danger">
+                                            Tolak pengajuan
+                                        </button>
+                                        <button type="button" class="btn btn-secondary" data-cancel>
+                                            Batal
+                                        </button>
+                                    </div>
+                                </form>
+                            </td>
+                        </tr>
+                    </template>
             <?php endif; ?>
             </tbody>
         </table>
@@ -190,6 +229,10 @@ function showMessage(text, success) {
     messageBox.textContent = text;
     messageBox.className = 'notice ' + (success ? 'notice-success' : 'notice-error');
     messageBox.hidden = false;
+
+    if (success && window.flashMessage) {
+        window.flashMessage(text, true);
+    }
 }
 
 async function sendRequest(url, data) {
@@ -209,7 +252,9 @@ async function sendRequest(url, data) {
 
 document.querySelectorAll('.approve-transaction').forEach(button => {
     button.addEventListener('click', async function () {
-        if (!confirm('Setujui pengajuan peminjaman ini?')) return;
+        if (!window.armAction(this, 'Klik lagi untuk menyetujui')) {
+            return;
+        }
 
         const data = new FormData();
         data.append('id_transaction', this.dataset.id);
@@ -224,22 +269,44 @@ document.querySelectorAll('.approve-transaction').forEach(button => {
     });
 });
 
+const rejectEditor = document.getElementById('rejectEditor');
+
 document.querySelectorAll('.reject-transaction').forEach(button => {
-    button.addEventListener('click', async function () {
-        const notes = prompt('Alasan penolakan (opsional):');
-        if (notes === null) return;
+    button.addEventListener('click', function () {
+        document.querySelectorAll('.editor-row').forEach(row => row.remove());
 
-        const data = new FormData();
-        data.append('id_transaction', this.dataset.id);
-        data.append('notes', notes);
-
-        try {
-            const result = await sendRequest(rejectUrl, data);
-            showMessage(result.message, true);
-            setTimeout(() => window.location.reload(), 600);
-        } catch (error) {
-            showMessage(error.message, false);
+        if (!rejectEditor) {
+            return;
         }
+
+        const row = this.closest('tr');
+        const editor = rejectEditor.content.firstElementChild.cloneNode(true);
+        const form = editor.querySelector('form');
+        const notes = form.elements.notes;
+
+        row.after(editor);
+        notes.focus();
+
+        form.querySelector('[data-cancel]').addEventListener('click', function () {
+            editor.remove();
+            button.focus();
+        });
+
+        form.addEventListener('submit', async function (event) {
+            event.preventDefault();
+
+            const data = new FormData();
+            data.append('id_transaction', button.dataset.id);
+            data.append('notes', notes.value.trim());
+
+            try {
+                const result = await sendRequest(rejectUrl, data);
+                showMessage(result.message, true);
+                setTimeout(() => window.location.reload(), 600);
+            } catch (error) {
+                showMessage(error.message, false);
+            }
+        });
     });
 });
 </script>

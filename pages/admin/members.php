@@ -20,8 +20,8 @@ $editId = filter_input(INPUT_GET, 'edit', FILTER_VALIDATE_INT);
 $editMember = $editId ? $memberService->findById($editId) : null;
 
 $pageTitle = 'Manajemen Member | Digital Library';
-$pageHeading = 'Manajemen Member';
-$pageSubtitle = 'Tambah member baru dan kelola status akunnya.';
+$pageHeading = 'Manajemen member';
+$pageSubtitle = 'Kelola akun member dan status aksesnya.';
 $activeNav = 'members';
 $userName = $admin->getName();
 $userRole = 'admin';
@@ -35,7 +35,13 @@ require __DIR__ . '/../partials/dashboard-header.php';
 <section class="panel">
 
     <div class="panel-head">
-        <h2><?= $editMember ? 'Edit Data Member' : 'Tambah Member Baru' ?></h2>
+        <h2><?= $editMember ? 'Edit data member' : 'Tambah member baru' ?></h2>
+
+        <?php if ($editMember): ?>
+            <span class="badge badge-completed">
+                ID <?= e($editMember['id_user'] ?? '') ?>
+            </span>
+        <?php endif; ?>
     </div>
 
     <form id="memberForm">
@@ -135,13 +141,15 @@ require __DIR__ . '/../partials/dashboard-header.php';
 <section class="panel">
 
     <div class="panel-head">
-        <h2>Daftar Member (<?= count($members) ?>)</h2>
+        <h2>Daftar member</h2>
+        <span class="hint"><?= count($members) ?> akun</span>
 
         <input
-            type="text"
+            type="search"
             id="searchMember"
             class="search-input"
-            placeholder="Cari nama atau email member..."
+            placeholder="Cari nama atau email"
+            aria-label="Cari member"
         >
     </div>
 
@@ -149,7 +157,7 @@ require __DIR__ . '/../partials/dashboard-header.php';
         <table class="table">
             <thead>
                 <tr>
-                    <th>No</th>
+                    <th class="number">No</th>
                     <th>Nama</th>
                     <th>Email</th>
                     <th>Nomor HP</th>
@@ -167,10 +175,13 @@ require __DIR__ . '/../partials/dashboard-header.php';
                 <?php foreach ($members as $index => $member): ?>
                     <?php $isActive = ($member['status'] ?? '') === 'active'; ?>
                     <tr>
-                        <td><?= $index + 1 ?></td>
-                        <td><?= e($member['name'] ?? '-') ?></td>
+                        <td class="number"><?= $index + 1 ?></td>
+                        <td>
+                            <strong><?= e($member['name'] ?? '-') ?></strong>
+                            <span class="id">#<?= (int) ($member['id_user'] ?? 0) ?></span>
+                        </td>
                         <td><?= e($member['email'] ?? '-') ?></td>
-                        <td><?= e(($member['phone'] ?? '') !== '' ? $member['phone'] : '-') ?></td>
+                        <td class="number"><?= e(($member['phone'] ?? '') !== '' ? $member['phone'] : '—') ?></td>
                         <td>
                             <span class="badge <?= $isActive ? 'badge-approved' : 'badge-rejected' ?>">
                                 <?= $isActive ? 'Aktif' : 'Nonaktif' ?>
@@ -179,13 +190,13 @@ require __DIR__ . '/../partials/dashboard-header.php';
                         <td>
                             <div class="actions">
                                 <a
-                                    class="btn btn-secondary"
+                                    class="btn btn-secondary btn-sm"
                                     href="<?= e(app_url('pages/admin/members.php?edit=' . urlencode((string) $member['id_user']))) ?>"
                                 >Edit</a>
 
                                 <button
                                     type="button"
-                                    class="btn btn-outline status-button"
+                                    class="btn <?= $isActive ? 'btn-danger' : 'btn-secondary' ?> btn-sm status-button"
                                     data-id="<?= (int) $member['id_user'] ?>"
                                     data-status="<?= $isActive ? 'inactive' : 'active' ?>"
                                 ><?= $isActive ? 'Nonaktifkan' : 'Aktifkan' ?></button>
@@ -211,6 +222,10 @@ function showMessage(text, success) {
     messageBox.textContent = text;
     messageBox.className = 'notice ' + (success ? 'notice-success' : 'notice-error');
     messageBox.hidden = false;
+
+    if (success && window.flashMessage) {
+        window.flashMessage(text, true);
+    }
 }
 
 async function sendRequest(url, formData) {
@@ -251,10 +266,10 @@ document.querySelectorAll('.status-button').forEach(button => {
         const status = this.dataset.status;
 
         const confirmation = status === 'inactive'
-            ? 'Yakin ingin menonaktifkan member ini?'
-            : 'Yakin ingin mengaktifkan kembali member ini?';
+            ? 'Klik lagi untuk menonaktifkan'
+            : 'Klik lagi untuk mengaktifkan';
 
-        if (!confirm(confirmation)) return;
+        if (!window.armAction(this, confirmation)) return;
 
         const formData = new FormData();
         formData.append('id_user', this.dataset.id);

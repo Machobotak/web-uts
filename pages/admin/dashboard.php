@@ -41,8 +41,8 @@ $pendingTransactions = array_filter(
 $latestMembers = array_slice(array_reverse($members), 0, 5);
 
 $pageTitle = 'Dashboard Admin | Digital Library';
-$pageHeading = 'Dashboard Admin';
-$pageSubtitle = 'Kelola sistem perpustakaan digital melalui dashboard ini.';
+$pageHeading = 'Dashboard admin';
+$pageSubtitle = 'Ringkasan koleksi, member, dan antrean persetujuan.';
 $activeNav = 'dashboard';
 $userName = $admin->getName();
 $userRole = 'admin';
@@ -51,36 +51,37 @@ require __DIR__ . '/../partials/dashboard-header.php';
 
 ?>
 
-<section class="stats">
+<section class="stats" aria-label="Ringkasan sistem">
 
     <div class="stat">
-        <p class="stat-label">Total Member</p>
+        <p class="stat-label">Total member</p>
         <p class="stat-value"><?= count($members) ?></p>
     </div>
 
     <div class="stat">
-        <p class="stat-label">Member Aktif</p>
+        <p class="stat-label">Member aktif</p>
         <p class="stat-value"><?= count($activeMembers) ?></p>
     </div>
 
     <div class="stat">
-        <p class="stat-label">Total Ebook</p>
+        <p class="stat-label">Total ebook</p>
         <p class="stat-value"><?= count($ebooks) ?></p>
     </div>
 
     <div class="stat">
-        <p class="stat-label">Total Kategori</p>
+        <p class="stat-label">Kategori</p>
         <p class="stat-value"><?= count($categories) ?></p>
     </div>
 
     <div class="stat">
-        <p class="stat-label">Total Transaksi</p>
+        <p class="stat-label">Transaksi</p>
         <p class="stat-value"><?= count($transactions) ?></p>
     </div>
 
     <div class="stat">
-        <p class="stat-label">Menunggu Persetujuan</p>
+        <p class="stat-label">Menunggu</p>
         <p class="stat-value"><?= count($pendingTransactions) ?></p>
+        <p class="stat-note">perlu ditinjau</p>
     </div>
 
 </section>
@@ -88,19 +89,19 @@ require __DIR__ . '/../partials/dashboard-header.php';
 <section class="panel">
 
     <div class="panel-head">
-        <h2>Data Member Terbaru</h2>
+        <h2>Member terbaru</h2>
 
-        <a
-            class="btn btn-outline"
-            href="<?= e(app_url('pages/admin/members.php')) ?>"
-        >Kelola Member</a>
+        <a class="btn btn-secondary btn-sm" href="<?= e(app_url('pages/admin/members.php')) ?>">
+            Kelola member
+            <?= icon('arrow-right') ?>
+        </a>
     </div>
 
     <div class="table-wrap">
         <table class="table">
             <thead>
                 <tr>
-                    <th>No</th>
+                    <th class="number">No</th>
                     <th>Nama</th>
                     <th>Email</th>
                     <th>Status</th>
@@ -114,15 +115,14 @@ require __DIR__ . '/../partials/dashboard-header.php';
                 </tr>
             <?php else: ?>
                 <?php foreach (array_values($latestMembers) as $index => $member): ?>
+                    <?php $isActive = ($member['status'] ?? '') === 'active'; ?>
                     <tr>
-                        <td><?= $index + 1 ?></td>
+                        <td class="number"><?= $index + 1 ?></td>
                         <td><?= e($member['name'] ?? '-') ?></td>
                         <td><?= e($member['email'] ?? '-') ?></td>
                         <td>
-                            <span class="badge <?= ($member['status'] ?? '') === 'active'
-                                ? 'badge-approved'
-                                : 'badge-rejected' ?>">
-                                <?= e($member['status'] ?? '-') ?>
+                            <span class="badge <?= $isActive ? 'badge-approved' : 'badge-rejected' ?>">
+                                <?= $isActive ? 'Aktif' : 'Nonaktif' ?>
                             </span>
                         </td>
                     </tr>

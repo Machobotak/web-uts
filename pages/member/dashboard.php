@@ -31,8 +31,8 @@ foreach ($transactions as $transaction) {
 }
 
 $pageTitle = 'Dashboard Member | Digital Library';
-$pageHeading = 'Dashboard Member';
-$pageSubtitle = 'Kelola aktivitas peminjaman dan temukan ebook favoritmu.';
+$pageHeading = 'Dashboard member';
+$pageSubtitle = 'Aktivitas pinjam dan jalan pintas ke rak.';
 $activeNav = 'dashboard';
 $userName = $member->getName();
 $userRole = 'member';
@@ -41,20 +41,21 @@ require __DIR__ . '/../partials/dashboard-header.php';
 
 ?>
 
-<section class="stats">
+<section class="stats" aria-label="Ringkasan peminjaman">
 
     <div class="stat">
-        <p class="stat-label">Total Peminjaman</p>
+        <p class="stat-label">Total peminjaman</p>
         <p class="stat-value"><?= count($transactions) ?></p>
     </div>
 
     <div class="stat">
-        <p class="stat-label">Menunggu Persetujuan</p>
+        <p class="stat-label">Menunggu</p>
         <p class="stat-value"><?= $pending ?></p>
+        <p class="stat-note">menunggu persetujuan admin</p>
     </div>
 
     <div class="stat">
-        <p class="stat-label">Peminjaman Disetujui</p>
+        <p class="stat-label">Disetujui</p>
         <p class="stat-value"><?= $approved ?></p>
     </div>
 
@@ -63,33 +64,39 @@ require __DIR__ . '/../partials/dashboard-header.php';
 <section class="panel">
 
     <div class="panel-head">
-        <h2>Menu Cepat</h2>
+        <h2>Menu cepat</h2>
     </div>
 
-    <div class="ebook-grid">
+    <nav class="quick-list" aria-label="Menu member">
 
-        <a class="ebook-card" href="<?= e(app_url('pages/member/borrowings.php')) ?>">
-            <h3>Cari dan Pinjam Ebook</h3>
-            <p class="ebook-meta">
-                Lihat katalog dan ajukan peminjaman ebook.
-            </p>
+        <a class="quick-link" href="<?= e(app_url('pages/member/borrowings.php')) ?>">
+            <?= icon('book') ?>
+            <span>
+                <span class="quick-title">Cari dan pinjam ebook</span>
+                <span class="quick-note">Telusuri rak, pilih judul, ajukan peminjaman.</span>
+            </span>
+            <?= icon('chevron-right', 'chevron') ?>
         </a>
 
-        <a class="ebook-card" href="<?= e(app_url('pages/member/history.php')) ?>">
-            <h3>Riwayat Peminjaman</h3>
-            <p class="ebook-meta">
-                Lihat status dan daftar peminjamanmu.
-            </p>
+        <a class="quick-link" href="<?= e(app_url('pages/member/history.php')) ?>">
+            <?= icon('clock') ?>
+            <span>
+                <span class="quick-title">Riwayat peminjaman</span>
+                <span class="quick-note">Lihat status pengajuan dan tenggat baca.</span>
+            </span>
+            <?= icon('chevron-right', 'chevron') ?>
         </a>
 
-        <a class="ebook-card" href="<?= e(app_url('pages/member/profile.php')) ?>">
-            <h3>Profil Saya</h3>
-            <p class="ebook-meta">
-                Lihat dan kelola informasi akun.
-            </p>
+        <a class="quick-link" href="<?= e(app_url('pages/member/profile.php')) ?>">
+            <?= icon('user') ?>
+            <span>
+                <span class="quick-title">Profil saya</span>
+                <span class="quick-note">Perbarui nama, telepon, dan alamat.</span>
+            </span>
+            <?= icon('chevron-right', 'chevron') ?>
         </a>
 
-    </div>
+    </nav>
 
 </section>
 

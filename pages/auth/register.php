@@ -55,48 +55,51 @@ require __DIR__ . '/../partials/header.php';
 
 ?>
 
-<main class="auth">
+<div class="auth">
 
-    <div class="card">
+    <div class="auth-card auth-card--wide">
 
-        <h1>Registrasi</h1>
+        <span class="auth-brand">
+            <?= icon('shelf') ?>
+            Digital Library
+        </span>
 
-        <p class="subtitle">
-            Buat akun untuk menggunakan Digital Library
+        <h1>Buat akun member</h1>
+
+        <p class="auth-subtitle">
+            Setelah terdaftar, kamu bisa mengajukan peminjaman dan membaca
+            koleksi langsung dari peramban.
         </p>
 
         <?php if ($error !== ''): ?>
-
-            <div class="alert alert-error">
+            <div class="notice notice-error" role="alert">
                 <?= htmlspecialchars($error) ?>
             </div>
-
         <?php endif; ?>
 
         <?php if ($success !== ''): ?>
-
-            <div class="alert alert-success">
+            <div class="notice notice-success" role="status">
                 <?= htmlspecialchars($success) ?>
             </div>
-
         <?php endif; ?>
 
         <form method="POST" action="">
 
-            <div class="form-group">
-                <label for="name">Nama</label>
+            <div class="field">
+                <label for="name">Nama lengkap</label>
 
                 <input
                     type="text"
                     id="name"
                     name="name"
                     value="<?= htmlspecialchars($name) ?>"
-                    placeholder="Masukkan nama lengkap"
+                    placeholder="Nama sesuai identitas"
+                    autocomplete="name"
                     required
                 >
             </div>
 
-            <div class="form-group">
+            <div class="field">
                 <label for="email">Email</label>
 
                 <input
@@ -104,26 +107,28 @@ require __DIR__ . '/../partials/header.php';
                     id="email"
                     name="email"
                     value="<?= htmlspecialchars($email) ?>"
-                    placeholder="Masukkan email"
+                    placeholder="nama@kampus.ac.id"
+                    autocomplete="email"
                     required
                 >
             </div>
 
-            <div class="form-group">
+            <div class="field">
                 <label for="password">Password</label>
 
                 <input
                     type="password"
                     id="password"
                     name="password"
-                    placeholder="Masukkan password minimal 8 karakter"
+                    placeholder="Minimal 8 karakter"
                     minlength="8"
+                    autocomplete="new-password"
                     required
                 >
             </div>
 
-            <div class="form-group">
-                <label for="confirm_password">Konfirmasi Password</label>
+            <div class="field">
+                <label for="confirm_password">Konfirmasi password</label>
 
                 <input
                     type="password"
@@ -131,29 +136,31 @@ require __DIR__ . '/../partials/header.php';
                     name="confirm_password"
                     placeholder="Ulangi password"
                     minlength="8"
+                    autocomplete="new-password"
                     required
                 >
             </div>
 
-            <div class="form-group">
-                <label for="phone">Nomor Telepon</label>
+            <div class="field">
+                <label for="phone">Nomor telepon</label>
 
                 <input
                     type="tel"
                     id="phone"
                     name="phone"
                     value="<?= htmlspecialchars($phone) ?>"
-                    placeholder="Contoh: 081234567890"
+                    placeholder="081234567890"
+                    autocomplete="tel"
                 >
             </div>
 
-            <div class="form-group">
+            <div class="field">
                 <label for="address">Alamat</label>
 
                 <textarea
                     id="address"
                     name="address"
-                    placeholder="Masukkan alamat"
+                    placeholder="Alamat tempat tinggal"
                 ><?= htmlspecialchars($address) ?></textarea>
             </div>
 
@@ -163,15 +170,13 @@ require __DIR__ . '/../partials/header.php';
 
         </form>
 
-        <div class="auth-switch">
+        <p class="auth-switch">
             Sudah punya akun?
-            <a href="<?= app_url('pages/auth/login.php') ?>">
-                Login sekarang
-            </a>
-        </div>
+            <a href="<?= app_url('pages/auth/login.php') ?>">Login sekarang</a>
+        </p>
 
     </div>
 
-</main>
+</div>
 
 <?php require __DIR__ . '/../partials/footer.php'; ?>

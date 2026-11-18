@@ -838,6 +838,39 @@ class CatalogService
     }
 
     /**
+     * Path absolut berkas ebook yang siap dibaca, atau null bila hilang.
+     * Dipakai halaman detail dan pembaca agar keduanya menilai hal yang sama.
+     */
+    public function resolveEbookFile(array $ebook): ?string
+    {
+        $baseDirectory = realpath(
+            $this->projectPath(self::EBOOK_DIRECTORY)
+        );
+        $fileName = basename((string) ($ebook['file_path'] ?? ''));
+
+        if ($baseDirectory === false || $fileName === '') {
+            return null;
+        }
+
+        $path = realpath($baseDirectory . DIRECTORY_SEPARATOR . $fileName);
+        $extension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+
+        if (
+            $path === false
+            || !is_file($path)
+            || !in_array($extension, ['pdf', 'epub'], true)
+            || !str_starts_with(
+                strtolower($path),
+                strtolower($baseDirectory . DIRECTORY_SEPARATOR)
+            )
+        ) {
+            return null;
+        }
+
+        return $path;
+    }
+
+    /**
      * Mengubah path relatif menjadi path absolut di root proyek.
      */
     private function projectPath(string $relativePath): string

@@ -4,6 +4,7 @@ require_once __DIR__ . '/../../config/bootstrap.php';
 
 use App\Services\AuthService;
 use App\Services\TransactionService;
+use App\Support\Shelf;
 use App\Middleware\AuthMiddleware;
 
 $authService = new AuthService($storage);
@@ -30,7 +31,7 @@ foreach ($transactions as $index => $transaction) {
 }
 
 $statusLabels = [
-    'pending' => 'Menunggu Persetujuan',
+    'pending' => 'Menunggu',
     'approved' => 'Disetujui',
     'rejected' => 'Ditolak',
     'cancelled' => 'Dibatalkan',
@@ -38,8 +39,8 @@ $statusLabels = [
 ];
 
 $pageTitle = 'Riwayat Peminjaman | Digital Library';
-$pageHeading = 'Riwayat Peminjaman';
-$pageSubtitle = 'Daftar seluruh transaksi peminjaman ebook kamu.';
+$pageHeading = 'Riwayat peminjaman';
+$pageSubtitle = 'Semua pengajuan, beserta sisa masa bacanya.';
 $activeNav = 'history';
 $userName = $member->getName();
 $userRole = 'member';
@@ -51,17 +52,18 @@ require __DIR__ . '/../partials/dashboard-header.php';
 <section class="panel">
 
     <div class="panel-head">
-        <h2>Semua Transaksi (<?= count($transactions) ?>)</h2>
+        <h2>Semua transaksi</h2>
+        <span class="hint"><?= count($transactions) ?> transaksi</span>
     </div>
 
     <div class="table-wrap">
         <table class="table">
             <thead>
                 <tr>
-                    <th>ID Transaksi</th>
-                    <th>Judul Ebook</th>
-                    <th>Tanggal Pengajuan</th>
-                    <th>Jatuh Tempo</th>
+                    <th>ID</th>
+                    <th>Ebook</th>
+                    <th>Diajukan</th>
+                    <th>Jatuh tempo</th>
                     <th>Status</th>
                     <th>Aksi</th>
                 </tr>
@@ -77,19 +79,41 @@ require __DIR__ . '/../partials/dashboard-header.php';
                     <?php
                     $status = $transaction['status'] ?? 'pending';
 
-                    $ebookTitles = array_filter(array_map(
+                    $ebookTitles = array_values(array_filter(array_map(
                         fn($detail) => $detail['ebook_title'] ?? '',
                         $transaction['details']
-                    ));
+                    )));
 
                     $startDate = $transaction['details'][0]['start_date']
-                        ?? ($transaction['create_at'] ?? '-');
+                        ?? ($transaction['create_at'] ?? '');
+
+                    $remaining = Shelf::remaining(Shelf::daysLeft($transaction['due_date']));
+                    $meter = max(0, min(100, (int) round($remaining / 7 * 100)));
                     ?>
                     <tr>
-                        <td>#<?= (int) ($transaction['id_transaction'] ?? 0) ?></td>
-                        <td><?= e(implode(', ', $ebookTitles) ?: '-') ?></td>
-                        <td><?= e($startDate) ?></td>
-                        <td><?= e($transaction['due_date'] !== '' ? $transaction['due_date'] : '-') ?></td>
+                        <td class="id">#<?= (int) ($transaction['id_transaction'] ?? 0) ?></td>
+                        <td>
+                            <?= e($ebookTitles[0] ?? '—') ?>
+                            <?php if (count($ebookTitles) > 1): ?>
+                                <span class="id">+<?= count($ebookTitles) - 1 ?></span>
+                            <?php endif; ?>
+                        </td>
+                        <td class="number"><?= e(Shelf::date($startDate)) ?></td>
+                        <td>
+                            <div class="due<?= $remaining === 0 ? ' is-overdue' : ($remaining <= 2 ? ' is-low' : '') ?>">
+                                <span class="due-date">
+                                    <?= e($transaction['due_date'] !== ''
+                                        ? Shelf::date($transaction['due_date'])
+                                        : '—') ?>
+                                </span>
+                                <?php if ($status === 'approved' && $transaction['due_date'] !== ''): ?>
+                                    <span class="due-note"><?= e(Shelf::remainingLabel(Shelf::daysLeft($transaction['due_date']))) ?></span>
+                                    <span class="meter" aria-hidden="true">
+                                        <span style="width: <?= $meter ?>%"></span>
+                                    </span>
+                                <?php endif; ?>
+                            </div>
+                        </td>
                         <td>
                             <span class="badge badge-<?= e($status) ?>">
                                 <?= e($statusLabels[$status] ?? $status) ?>
@@ -108,18 +132,18 @@ require __DIR__ . '/../partials/dashboard-header.php';
                                     <?php $hasAction = true; ?>
 
                                     <?php if (!empty($detail['is_overdue'])): ?>
-                                        <span class="badge badge-overdue">Jatuh tempo</span>
+                                        <span class="badge badge-overdue">Lewat tenggat</span>
                                     <?php else: ?>
                                         <a
-                                            class="btn btn-primary"
+                                            class="btn btn-primary btn-sm"
                                             href="<?= e(app_url('pages/member/reader.php?id=' . (int) ($detail['id_ebook'] ?? 0))) ?>"
-                                        >Baca <?= e($detail['ebook_title'] ?: 'Ebook') ?></a>
+                                        >Baca</a>
                                     <?php endif; ?>
                                 <?php endforeach; ?>
 
-                                <?php if (!$hasAction): ?>-<?php endif; ?>
+                                <?php if (!$hasAction): ?>—<?php endif; ?>
                             <?php else: ?>
-                                -
+                                —
                             <?php endif; ?>
                             </div>
                         </td>

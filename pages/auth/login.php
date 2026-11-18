@@ -59,85 +59,75 @@ require __DIR__ . '/../partials/header.php';
 
 ?>
 
-<main class="auth">
+<div class="auth">
 
-    <div class="card card-narrow">
+    <div class="auth-card">
 
-        <h1>Login</h1>
+        <span class="auth-brand">
+            <?= icon('shelf') ?>
+            Digital Library
+        </span>
 
-        <p class="subtitle">
-            Masuk untuk mengakses Digital Library
+        <h1>Masuk ke perpustakaan</h1>
+
+        <p class="auth-subtitle">
+            Masuk dengan akun member untuk meminjam dan membaca koleksi.
         </p>
 
         <?php if ($notice !== ''): ?>
-
-            <div class="alert alert-success">
+            <div class="notice notice-success" role="status">
                 <?= htmlspecialchars($notice) ?>
             </div>
-
         <?php endif; ?>
 
         <?php if ($error !== ''): ?>
-
-            <div class="alert alert-error">
+            <div class="notice notice-error" role="alert">
                 <?= htmlspecialchars($error) ?>
             </div>
-
         <?php endif; ?>
 
         <form method="POST" action="">
 
-            <div class="form-group">
-
-                <label for="email">
-                    Email
-                </label>
+            <div class="field">
+                <label for="email">Email</label>
 
                 <input
                     type="email"
                     id="email"
                     name="email"
                     value="<?= htmlspecialchars($email) ?>"
-                    placeholder="Masukkan email"
+                    placeholder="nama@kampus.ac.id"
+                    autocomplete="email"
                     required
                 >
-
             </div>
 
-            <div class="form-group">
-
-                <label for="password">
-                    Password
-                </label>
+            <div class="field">
+                <label for="password">Password</label>
 
                 <input
                     type="password"
                     id="password"
                     name="password"
                     placeholder="Masukkan password"
+                    autocomplete="current-password"
                     required
                 >
-
             </div>
 
             <button type="submit" class="btn btn-primary">
-                Login
+                Masuk
             </button>
 
         </form>
 
-        <div class="auth-switch">
-
+        <p class="auth-switch">
             Belum punya akun?
-
-            <a href="<?= app_url('pages/auth/register.php') ?>">
-                Daftar sekarang
-            </a>
-
-        </div>
+            <a href="<?= app_url('pages/auth/register.php') ?>">Daftar sekarang</a>
+        </p>
 
     </div>
 
-</main>
+</div>
 
 <?php require __DIR__ . '/../partials/footer.php'; ?>
