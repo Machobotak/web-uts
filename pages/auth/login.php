@@ -5,7 +5,23 @@ require_once __DIR__ . '/../../config/bootstrap.php';
 use App\Services\AuthService;
 
 $error = '';
+$notice = '';
 $email = '';
+
+// Pesan dari redirect handler (handlers/auth/login.php & logout.php).
+switch ($_GET['error'] ?? '') {
+    case 'invalid':
+        $error = 'Email atau password salah, atau akun tidak aktif.';
+        break;
+
+    case 'empty':
+        $error = 'Email dan password wajib diisi.';
+        break;
+}
+
+if (($_GET['logout'] ?? '') === '1') {
+    $notice = 'Anda berhasil logout.';
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim($_POST['email'] ?? '');
@@ -21,17 +37,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($user === null) {
             $error = 'Email atau password salah, atau akun tidak aktif.';
         } else {
-            // Ambil role dari user yang berhasil login.
-            $role = $user->getRole();
+            // Admin dan member diarahkan ke dashboard masing-masing.
+            $dashboard = $user->getRole() === 'admin'
+                ? 'pages/admin/dashboard.php'
+                : 'pages/member/dashboard.php';
 
-            // Admin tetap diarahkan ke dashboard admin.
-            if ($role === 'admin') {
-                header('Location: ' . app_url('pages/admin/dashboard.php'));
-            } else {
-                // Member diarahkan ke halaman Home.
-                header('Location: ' . app_url('pages/public/home.php'));
-            }
-
+            header('Location: ' . app_url($dashboard));
             exit;
         }
 
@@ -57,6 +68,14 @@ require __DIR__ . '/../partials/header.php';
         <p class="subtitle">
             Masuk untuk mengakses Digital Library
         </p>
+
+        <?php if ($notice !== ''): ?>
+
+            <div class="alert alert-success">
+                <?= htmlspecialchars($notice) ?>
+            </div>
+
+        <?php endif; ?>
 
         <?php if ($error !== ''): ?>
 
