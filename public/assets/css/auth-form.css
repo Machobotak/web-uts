@@ -1,9 +1,15 @@
-/* Halaman masuk dan registrasi: satu kartu di tengah, tanpa hiasan. */
+/* Halaman masuk dan registrasi: satu kartu di tengah, tanpa hiasan.
+   Berkas ini hanya dimuat halaman auth, jadi `main` di sini selalu wadah kartu. */
+
+main {
+    display: flex;
+    flex-direction: column;
+}
 
 .auth {
     display: grid;
     place-items: center;
-    min-height: calc(100vh - 64px);
+    flex: 1;
     padding: clamp(28px, 5vw, 56px) 20px;
 }
 
@@ -72,7 +78,6 @@
 
 @media (max-width: 560px) {
     .auth {
-        min-height: auto;
         padding: 20px 14px 32px;
     }
 }

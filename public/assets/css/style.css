@@ -56,12 +56,19 @@ html {
 }
 
 body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
     font-family: var(--font);
     font-size: 16px;
     line-height: 1.55;
     color: var(--ink);
     background: var(--page);
     -webkit-font-smoothing: antialiased;
+}
+
+main {
+    flex: 1 0 auto;
 }
 
 img,
