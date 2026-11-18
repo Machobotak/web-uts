@@ -4,6 +4,10 @@ public/uploads/covers/*
 storage/ebooks/*
 !storage/ebooks/.gitkeep
 
+# Catatan kerja lokal (tidak dipublikasikan)
+DESIGN.md
+PRODUCT.md
+
 # PHP
 vendor/
 composer.lock
