@@ -844,25 +844,35 @@ a.book-card:hover {
     font-weight: 600;
 }
 
-.navbar .nav-toggle {
+/* Aksi navbar sempit: tombol Login lalu tombol menu ikon.
+   Tautan Login tetap ada di dalam menu agar tidak hilang. */
+.navbar-actions {
     display: none;
     align-items: center;
     gap: 8px;
+}
+
+.navbar .nav-login {
+    display: none;
+}
+
+.navbar .nav-toggle {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
     min-height: 44px;
-    padding: 0 12px;
+    padding: 0;
     border: 1px solid var(--line-strong);
     border-radius: 6px;
     background: var(--surface);
     color: var(--text);
-    font: inherit;
-    font-size: 0.82rem;
-    font-weight: 600;
     cursor: pointer;
 }
 
 .navbar .nav-toggle svg {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
 }
 
 .navbar .nav-toggle[aria-expanded="true"] {
@@ -941,9 +951,20 @@ a.book-card:hover {
         min-height: 44px;
     }
 
+    .navbar-actions {
+        display: flex;
+        margin-left: auto;
+    }
+
+    .navbar .nav-login {
+        display: inline-flex;
+        min-height: 40px;
+        padding: 0 14px;
+        font-size: 0.85rem;
+    }
+
     .navbar .nav-toggle {
         display: inline-flex;
-        margin-left: auto;
     }
 
     body[data-nav="closed"] .nav-links {

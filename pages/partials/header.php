@@ -52,7 +52,7 @@ $navItems = [
     <noscript>
         <style>
             @media (max-width: 800px) {
-                .navbar .nav-toggle { display: none !important; }
+                .navbar-actions { display: none !important; }
                 body[data-nav] .navbar .nav-links { display: flex !important; }
             }
         </style>
@@ -72,16 +72,22 @@ $navItems = [
             Digital Library
         </a>
 
-        <button
-            type="button"
-            class="nav-toggle"
-            aria-expanded="false"
-            aria-controls="mainNav"
-            data-nav-breakpoint="800"
-        >
-            <?= icon('menu') ?>
-            Menu
-        </button>
+        <div class="navbar-actions">
+            <?php if ($activeNav !== 'login'): ?>
+                <a class="btn btn-primary nav-login" href="<?= htmlspecialchars($navItems['login']['url']) ?>">Login</a>
+            <?php endif; ?>
+
+            <button
+                type="button"
+                class="nav-toggle"
+                aria-expanded="false"
+                aria-controls="mainNav"
+                aria-label="Menu"
+                data-nav-breakpoint="800"
+            >
+                <?= icon('menu') ?>
+            </button>
+        </div>
 
         <nav class="nav-links" id="mainNav" aria-label="Navigasi utama">
             <?php foreach ($navItems as $key => $item): ?>

@@ -246,7 +246,7 @@ Ledger, bukan kartu: kepala tabel uppercase 0.68rem berwarna `#6b7280` dengan ga
 
 ### Navigation
 
-Publik: navbar tipis dengan logo rak + empat tautan teks; tautan aktif `aria-current="page"` berwarna aksen. Aplikasi: sidebar navy 250px dengan brand, label bagian, tautan berikon, dan kaki berisi identitas + tombol keluar; tautan aktif berlatar aksen penuh. Di bawah 900px sidebar menjadi laci dengan scrim, ditutup lewat tombol, scrim, Escape, atau pemilihan tautan.
+Publik: navbar tipis dengan logo rak + empat tautan teks; tautan aktif `aria-current="page"` berwarna aksen. Di bawah 800px tautan teks menjadi menu lipat; navbar menyisakan tombol Login beraksen dan tombol menu ikon 44px tanpa label teks (`aria-label`), dan tautan Login tetap ada di dalam menu. Aplikasi: sidebar navy 250px dengan brand, label bagian, tautan berikon, dan kaki berisi identitas + tombol keluar; tautan aktif berlatar aksen penuh. Di bawah 900px sidebar menjadi laci dengan scrim, ditutup lewat tombol, scrim, Escape, atau pemilihan tautan.
 
 ## Do's and Don'ts
 
