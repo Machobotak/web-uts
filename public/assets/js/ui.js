@@ -49,7 +49,7 @@ window.flashMessage = function (text, success) {
     }
 })();
 
-// Rel navigasi pada layar sempit.
+// Panel navigasi pada layar sempit.
 (function () {
     'use strict';
 
@@ -63,11 +63,14 @@ window.flashMessage = function (text, success) {
 
     var scrim = document.querySelector('[data-nav-close]');
     var firstLink = nav.querySelector('a');
+    var breakpoint = Number(toggle.dataset.navBreakpoint) || 900;
 
     function setOpen(open) {
         body.dataset.nav = open ? 'open' : 'closed';
         toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
     }
+
+    setOpen(false);
 
     toggle.addEventListener('click', function () {
         var open = body.dataset.nav !== 'open';
@@ -92,6 +95,18 @@ window.flashMessage = function (text, success) {
         }
     });
 
+    document.addEventListener('click', function (event) {
+        if (body.dataset.nav !== 'open') {
+            return;
+        }
+
+        if (nav.contains(event.target) || toggle.contains(event.target)) {
+            return;
+        }
+
+        setOpen(false);
+    });
+
     nav.addEventListener('click', function (event) {
         if (event.target.closest('a')) {
             setOpen(false);
@@ -99,7 +114,7 @@ window.flashMessage = function (text, success) {
     });
 
     window.addEventListener('resize', function () {
-        if (window.innerWidth > 900 && body.dataset.nav === 'open') {
+        if (window.innerWidth > breakpoint && body.dataset.nav === 'open') {
             setOpen(false);
         }
     });

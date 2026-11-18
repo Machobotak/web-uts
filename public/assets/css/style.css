@@ -833,6 +833,33 @@ a.book-card:hover {
     font-weight: 600;
 }
 
+.navbar .nav-toggle {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 12px;
+    border: 1px solid var(--line-strong);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--text);
+    font: inherit;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.navbar .nav-toggle svg {
+    width: 16px;
+    height: 16px;
+}
+
+.navbar .nav-toggle[aria-expanded="true"] {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    color: var(--accent-dark);
+}
+
 /* ------------------------------------ Footer */
 
 .footer {
@@ -894,24 +921,36 @@ a.book-card:hover {
 
 @media (max-width: 800px) {
     .navbar-inner {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 2px;
-        padding: 10px 0;
+        flex-wrap: wrap;
+        gap: 0;
+        padding: 8px 0;
     }
 
     .navbar .logo {
         min-height: 44px;
-        align-items: center;
+    }
+
+    .navbar .nav-toggle {
+        display: inline-flex;
+        margin-left: auto;
+    }
+
+    body[data-nav="closed"] .nav-links {
+        display: none;
     }
 
     .nav-links {
-        width: 100%;
+        flex-basis: 100%;
+        flex-direction: column;
+        align-items: stretch;
         gap: 0;
+        padding: 6px 0 4px;
+        border-top: 1px solid var(--line);
+        margin-top: 8px;
     }
 
     .nav-links a {
-        display: inline-flex;
+        display: flex;
         align-items: center;
         min-height: 44px;
         padding: 8px 10px;
