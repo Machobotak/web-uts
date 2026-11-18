@@ -19,6 +19,8 @@ $catalogService = new CatalogService($storage);
 $transactionService = new TransactionService($storage);
 
 $ebooks = $catalogService->getAllEbooks();
+$categoryNames = $catalogService->getCategoryNameMap();
+
 $transactions = $transactionService->getTransactionsByUser($memberId);
 
 // Lengkapi transaksi dengan judul ebook dan tanggal jatuh tempo.
@@ -60,6 +62,7 @@ require __DIR__ . '/../partials/dashboard-header.php';
 
     <div class="panel-head">
         <h2>Katalog Ebook</h2>
+        <p class="hint">Klik kartu untuk memilih ebook.</p>
     </div>
 
     <?php if (empty($ebooks)): ?>
@@ -70,40 +73,80 @@ require __DIR__ . '/../partials/dashboard-header.php';
 
         <form id="borrowForm">
 
-            <div class="ebook-grid">
+            <div class="book-grid">
 
                 <?php foreach ($ebooks as $ebook): ?>
                     <?php
                     $isAvailable = ($ebook['status'] ?? '') === 'available'
                         && (int) ($ebook['license_limit'] ?? 0) > 0;
+
+                    $coverFile = basename((string) ($ebook['cover'] ?? ''));
+                    $hasCover = $coverFile !== ''
+                        && is_file(__DIR__ . '/../../public/uploads/covers/' . $coverFile);
+
+                    $title = (string) ($ebook['title'] ?? 'Tanpa Judul');
+                    $initial = preg_match('/\X/u', trim($title), $match) === 1
+                        ? strtoupper($match[0])
+                        : '';
+                    $category = $categoryNames[(int) ($ebook['id_category'] ?? 0)] ?? '';
                     ?>
-                    <div class="ebook-card">
+                    <label class="book-card<?= $isAvailable ? '' : ' is-unavailable' ?>">
 
-                        <h3><?= e($ebook['title'] ?? 'Tanpa Judul') ?></h3>
+                        <span class="book-cover">
 
-                        <p class="ebook-meta">
-                            Penulis: <?= e($ebook['author'] ?? '-') ?>
-                        </p>
+                            <?php if ($hasCover): ?>
 
-                        <p class="ebook-meta">
-                            <?= e($ebook['description'] ?? 'Tidak ada deskripsi.') ?>
-                        </p>
+                                <img
+                                    src="<?= e(app_url('public/uploads/covers/' . rawurlencode($coverFile))) ?>"
+                                    alt="Cover <?= e($title) ?>"
+                                    loading="lazy"
+                                >
 
-                        <p class="ebook-meta">
-                            Sisa lisensi: <?= (int) ($ebook['license_limit'] ?? 0) ?>
-                        </p>
+                            <?php else: ?>
 
-                        <label class="checkbox">
-                            <input
-                                type="checkbox"
-                                name="ebook_ids[]"
-                                value="<?= (int) ($ebook['id_ebook'] ?? 0) ?>"
-                                <?= $isAvailable ? '' : 'disabled' ?>
-                            >
-                            <?= $isAvailable ? 'Pilih ebook' : 'Tidak tersedia' ?>
-                        </label>
+                                <span class="book-initial"><?= e($initial) ?></span>
 
-                    </div>
+                            <?php endif; ?>
+
+                            <span class="book-state">
+                                <?= $isAvailable ? 'Tersedia' : 'Habis' ?>
+                            </span>
+
+                        </span>
+
+                        <span class="book-body">
+
+                            <?php if ($category !== ''): ?>
+                                <span class="book-category"><?= e($category) ?></span>
+                            <?php endif; ?>
+
+                            <span class="book-title"><?= e($title) ?></span>
+
+                            <span class="book-author"><?= e($ebook['author'] ?? '-') ?></span>
+
+                            <span class="book-desc">
+                                <?= e($ebook['description'] ?? 'Tidak ada deskripsi.') ?>
+                            </span>
+
+                            <span class="book-foot">
+
+                                <span class="book-license">
+                                    Sisa <?= (int) ($ebook['license_limit'] ?? 0) ?>
+                                </span>
+
+                                <input
+                                    type="checkbox"
+                                    class="book-check"
+                                    name="ebook_ids[]"
+                                    value="<?= (int) ($ebook['id_ebook'] ?? 0) ?>"
+                                    <?= $isAvailable ? '' : 'disabled' ?>
+                                >
+
+                            </span>
+
+                        </span>
+
+                    </label>
                 <?php endforeach; ?>
 
             </div>
@@ -179,14 +222,26 @@ require __DIR__ . '/../partials/dashboard-header.php';
                                     data-id="<?= $transactionId ?>"
                                 >Batalkan</button>
                             <?php elseif ($status === 'approved'): ?>
+                                <?php $hasAction = false; ?>
+
                                 <?php foreach ($transaction['details'] as $detail): ?>
-                                    <?php if (($detail['status'] ?? '') !== 'returned'): ?>
+                                    <?php if (($detail['status'] ?? '') === 'returned') {
+                                        continue;
+                                    } ?>
+
+                                    <?php $hasAction = true; ?>
+
+                                    <?php if (!empty($detail['is_overdue'])): ?>
+                                        <span class="badge badge-overdue">Jatuh tempo</span>
+                                    <?php else: ?>
                                         <a
                                             class="btn btn-primary"
                                             href="<?= e(app_url('pages/member/reader.php?id=' . (int) ($detail['id_ebook'] ?? 0))) ?>"
                                         >Baca <?= e($detail['ebook_title'] ?: 'Ebook') ?></a>
                                     <?php endif; ?>
                                 <?php endforeach; ?>
+
+                                <?php if (!$hasAction): ?>-<?php endif; ?>
                             <?php else: ?>
                                 -
                             <?php endif; ?>

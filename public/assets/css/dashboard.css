@@ -381,13 +381,202 @@
     font-size: 14px;
 }
 
-/* Reader. */
-.reader-frame {
+/* Katalog ebook dengan cover pada halaman peminjaman. */
+.hint {
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.book-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 18px;
+}
+
+.book-grid + .actions {
+    margin-top: 18px;
+}
+
+.book-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.book-card:hover {
+    border-color: var(--accent);
+    box-shadow: 0 10px 22px rgba(17, 24, 39, 0.10);
+    transform: translateY(-3px);
+}
+
+.book-card:has(.book-check:checked) {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.book-card.is-unavailable {
+    cursor: not-allowed;
+    opacity: 0.66;
+}
+
+.book-card.is-unavailable:hover {
+    border-color: var(--line);
+    box-shadow: none;
+    transform: none;
+}
+
+.book-cover {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 4 / 5;
+    background: linear-gradient(140deg, var(--accent-soft), var(--line));
+    overflow: hidden;
+}
+
+.book-cover img {
+    display: block;
     width: 100%;
-    height: 78vh;
+    height: 100%;
+    object-fit: cover;
+}
+
+.book-initial {
+    font-size: 44px;
+    font-weight: bold;
+    color: var(--accent);
+    opacity: 0.65;
+}
+
+.book-state {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: bold;
+    background: rgba(255, 255, 255, 0.92);
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+.book-card.is-unavailable .book-state {
+    color: #991b1b;
+    border-color: #fecaca;
+}
+
+.book-body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 5px;
+    padding: 14px;
+}
+
+.book-category {
+    align-self: flex-start;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent-dark);
+    font-size: 11px;
+    font-weight: bold;
+}
+
+.book-title {
+    font-size: 15px;
+    font-weight: bold;
+    line-height: 1.35;
+    color: var(--ink-strong);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.book-author {
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.book-desc {
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--muted);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.book-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: auto;
+    padding-top: 10px;
+    border-top: 1px solid var(--line);
+}
+
+.book-license {
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: var(--page);
+    border: 1px solid var(--line);
+    color: var(--text-soft);
+    font-size: 11px;
+    font-weight: bold;
+}
+
+.book-check {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--accent);
+    cursor: pointer;
+}
+
+.book-card.is-unavailable .book-check {
+    cursor: not-allowed;
+}
+
+/* Reader. */
+.reader {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.reader-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.reader-page {
+    font-size: 0.9rem;
+    color: var(--muted);
+}
+
+.reader canvas {
+    display: block;
+    margin: 0 auto;
+    max-width: 100%;
+    height: auto;
     border: 1px solid var(--line);
     border-radius: 10px;
-    background: var(--surface);
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
 }
 
 /* Detail transaksi. */

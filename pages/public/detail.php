@@ -137,7 +137,7 @@ require __DIR__ . '/../partials/header.php';
                     <?php if (!empty($ebook['file_path'])): ?>
 
                         <a
-                            href="<?= htmlspecialchars(app_url('pages/member/reader.php?id_ebook=' . urlencode((string) ($ebook['id_ebook'] ?? '')))) ?>"
+                            href="<?= htmlspecialchars(app_url('pages/member/reader.php?id=' . urlencode((string) ($ebook['id_ebook'] ?? '')))) ?>"
                             class="btn btn-primary"
                         >
                             Baca E-Book

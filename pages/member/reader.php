@@ -2,6 +2,7 @@
 
 require_once __DIR__ . '/../../config/bootstrap.php';
 
+use App\Models\TransactionDetail;
 use App\Services\AuthService;
 use App\Services\CatalogService;
 use App\Services\TransactionService;
@@ -25,29 +26,49 @@ if ($ebook === null) {
     exit('Ebook tidak ditemukan.');
 }
 
-// Member hanya boleh membaca ebook dari transaksi yang sudah disetujui.
-$hasAccess = false;
+// Member hanya boleh membaca ebook dari peminjaman yang masih berlaku.
+$access = null;
+$dueDate = '';
 
 foreach ($transactionService->getTransactionsByUser($member->getIdUser()) as $transaction) {
     if (($transaction['status'] ?? '') !== 'approved') {
         continue;
     }
 
-    $details = $transactionService->getTransactionDetailsWithEbook(
+    $details = $transactionService->getTransactionDetails(
         (int) ($transaction['id_transaction'] ?? 0)
     );
 
     foreach ($details as $detail) {
-        if ((int) ($detail['id_ebook'] ?? 0) === $ebookId) {
-            $hasAccess = true;
-            break 2;
+        if ((int) ($detail['id_ebook'] ?? 0) !== $ebookId) {
+            continue;
         }
+
+        $loan = new TransactionDetail($detail);
+
+        if (!$loan->isHoldingLicense()) {
+            continue;
+        }
+
+        if ($loan->isOverdue()) {
+            $access = 'expired';
+            continue;
+        }
+
+        $access = 'ok';
+        $dueDate = (string) ($detail['due_date'] ?? '');
+        break 2;
     }
 }
 
-if (!$hasAccess) {
+if ($access === null) {
     http_response_code(403);
     exit('Akses membaca ditolak. Ebook belum disetujui untuk akun Anda.');
+}
+
+if ($access === 'expired') {
+    http_response_code(403);
+    exit('Masa peminjaman ebook ini sudah berakhir. Ajukan peminjaman baru untuk membacanya lagi.');
 }
 
 // file_path hanya menyimpan nama file di dalam storage/ebooks.
@@ -73,15 +94,26 @@ if (
 }
 
 // Mode stream: mengirim file setelah hak akses diperiksa.
+// Berkas hanya boleh diambil oleh pembaca di halaman ini (fetch/XHR),
+// bukan dibuka sebagai dokumen di tab browser.
 if (($_GET['stream'] ?? '') === '1') {
+    $fetchDestination = $_SERVER['HTTP_SEC_FETCH_DEST'] ?? '';
+
+    if (in_array($fetchDestination, ['document', 'iframe', 'frame'], true)) {
+        http_response_code(403);
+        exit('Ebook hanya dapat dibaca melalui halaman pembaca.');
+    }
+
     $contentTypes = [
         'pdf' => 'application/pdf',
         'epub' => 'application/epub+zip',
     ];
 
     header('Content-Type: ' . $contentTypes[$extension]);
-    header('Content-Disposition: inline; filename="ebook.' . $extension . '"');
+    header('Content-Disposition: inline');
     header('Content-Length: ' . filesize($filePath));
+    header('Cache-Control: no-store, no-cache, must-revalidate');
+    header('Pragma: no-cache');
     header('X-Content-Type-Options: nosniff');
 
     readfile($filePath);
@@ -90,7 +122,9 @@ if (($_GET['stream'] ?? '') === '1') {
 
 $pageTitle = $ebook['title'] . ' | Digital Library';
 $pageHeading = $ebook['title'];
-$pageSubtitle = 'Penulis: ' . ($ebook['author'] ?? '-') . ' — selamat membaca.';
+$pageSubtitle = 'Penulis: ' . ($ebook['author'] ?? '-')
+    . ' — batas baca: '
+    . ($dueDate !== '' ? date('d M Y H:i', strtotime($dueDate)) : '-') . '.';
 $activeNav = 'borrowings';
 $userName = $member->getName();
 $userRole = 'member';
@@ -111,17 +145,37 @@ require __DIR__ . '/../partials/dashboard-header.php';
     </div>
 
     <?php if ($extension === 'pdf'): ?>
-        <iframe
-            class="reader-frame"
-            src="<?= e(app_url('pages/member/reader.php?id=' . $ebookId . '&stream=1')) ?>"
-            title="Pembaca PDF"
-        ></iframe>
+        <?php
+        // ?v=filemtime agar perubahan berkas pembaca langsung dipakai browser.
+        $assetVersion = static function (string $path): string {
+            $full = __DIR__ . '/../../' . $path;
+            $time = is_file($full) ? filemtime($full) : false;
+
+            return app_url($path) . ($time === false ? '' : '?v=' . $time);
+        };
+        ?>
+
+        <div
+            class="reader"
+            id="pdfViewer"
+            data-src="<?= e(app_url('pages/member/reader.php?id=' . $ebookId . '&stream=1')) ?>"
+            data-worker="<?= e($assetVersion('public/assets/pdfjs/pdf.worker.min.js')) ?>"
+        >
+            <div class="reader-bar">
+                <button type="button" class="btn btn-outline" id="pdfPrev" disabled>Sebelumnya</button>
+                <span class="reader-page" id="pdfPage">Memuat ebook...</span>
+                <button type="button" class="btn btn-outline" id="pdfNext" disabled>Berikutnya</button>
+            </div>
+
+            <canvas id="pdfCanvas"></canvas>
+        </div>
+
+        <script src="<?= e($assetVersion('public/assets/pdfjs/pdf.min.js')) ?>"></script>
+        <script src="<?= e($assetVersion('public/assets/js/reader.js')) ?>"></script>
     <?php else: ?>
         <p class="empty">
-            File EPUB tidak dapat ditampilkan langsung di browser.
-            <a href="<?= e(app_url('pages/member/reader.php?id=' . $ebookId . '&stream=1')) ?>">
-                Unduh ebook
-            </a>
+            Ebook ini berformat EPUB dan tidak bisa ditampilkan langsung di browser.
+            Hubungi admin perpustakaan untuk ketersediaan versi PDF.
         </p>
     <?php endif; ?>
 
