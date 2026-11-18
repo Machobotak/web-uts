@@ -1,6 +1,6 @@
 <?php
 /**
- * Partial tata letak: <head> + navbar.
+ * Partial tata letak: <head> + navbar publik.
  *
  * Dipakai halaman: require __DIR__ . '/../partials/header.php';
  * Variabel yang dibaca:
@@ -13,6 +13,8 @@ if (!function_exists('app_url')) {
     http_response_code(404);
     exit;
 }
+
+require_once __DIR__ . '/icons.php';
 
 $pageTitle = $pageTitle ?? 'Digital Library';
 $activeNav = $activeNav ?? '';
@@ -45,25 +47,34 @@ $navItems = [
     <title><?= htmlspecialchars($pageTitle) ?></title>
 
 <?php foreach ($cssFiles as $cssFile): ?>
-    <link rel="stylesheet" href="<?= htmlspecialchars(app_url('public/assets/css/' . $cssFile)) ?>">
+    <link rel="stylesheet" href="<?= htmlspecialchars(asset_url('public/assets/css/' . $cssFile)) ?>">
 <?php endforeach; ?>
 </head>
 
 <body>
 
-<nav class="navbar">
+<a class="skip-link" href="#konten">Ke konten utama</a>
 
-    <a href="<?= htmlspecialchars(app_url('pages/public/home.php')) ?>" class="logo">
-        Digital Library
-    </a>
+<header class="navbar">
 
-    <div class="nav-links">
-        <?php foreach ($navItems as $key => $item): ?>
-            <a
-                href="<?= htmlspecialchars($item['url']) ?>"
-                <?= $key === $activeNav ? 'aria-current="page"' : '' ?>
-            ><?= $item['label'] ?></a>
-        <?php endforeach; ?>
+    <div class="navbar-inner">
+
+        <a href="<?= htmlspecialchars(app_url('pages/public/home.php')) ?>" class="logo">
+            <?= icon('shelf', 'logo-mark') ?>
+            Digital Library
+        </a>
+
+        <nav class="nav-links" aria-label="Navigasi utama">
+            <?php foreach ($navItems as $key => $item): ?>
+                <a
+                    href="<?= htmlspecialchars($item['url']) ?>"
+                    <?= $key === $activeNav ? 'aria-current="page"' : '' ?>
+                ><?= $item['label'] ?></a>
+            <?php endforeach; ?>
+        </nav>
+
     </div>
 
-</nav>
+</header>
+
+<main id="konten">

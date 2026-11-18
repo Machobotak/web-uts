@@ -5,6 +5,7 @@ require_once __DIR__ . '/../../config/bootstrap.php';
 use App\Services\AuthService;
 use App\Services\CatalogService;
 use App\Services\TransactionService;
+use App\Support\Shelf;
 use App\Middleware\AuthMiddleware;
 
 $authService = new AuthService($storage);
@@ -18,7 +19,18 @@ $memberId = $member->getIdUser();
 $catalogService = new CatalogService($storage);
 $transactionService = new TransactionService($storage);
 
-$ebooks = $catalogService->getAllEbooks();
+$keyword = trim($_GET['search'] ?? '');
+$category = (int) ($_GET['category'] ?? 0);
+$pilih = (int) ($_GET['pilih'] ?? 0);
+
+$ebooks = $catalogService->searchEbooks([
+    'q' => $keyword,
+    'category' => $category
+]);
+
+$categories = $catalogService->getAllCategories();
+$isFiltered = $keyword !== '' || $category > 0;
+
 $categoryNames = $catalogService->getCategoryNameMap();
 
 $transactions = $transactionService->getTransactionsByUser($memberId);
@@ -38,7 +50,7 @@ foreach ($transactions as $index => $transaction) {
 }
 
 $statusLabels = [
-    'pending' => 'Menunggu Persetujuan',
+    'pending' => 'Menunggu',
     'approved' => 'Disetujui',
     'rejected' => 'Ditolak',
     'cancelled' => 'Dibatalkan',
@@ -46,8 +58,8 @@ $statusLabels = [
 ];
 
 $pageTitle = 'Peminjaman Ebook | Digital Library';
-$pageHeading = 'Peminjaman Ebook';
-$pageSubtitle = 'Pilih ebook yang ingin kamu pinjam.';
+$pageHeading = 'Peminjaman ebook';
+$pageSubtitle = 'Tandai judul di rak, lalu ajukan sekaligus.';
 $activeNav = 'borrowings';
 $userName = $member->getName();
 $userRole = 'member';
@@ -58,23 +70,90 @@ require __DIR__ . '/../partials/dashboard-header.php';
 
 <div id="message" class="notice" hidden></div>
 
-<section class="panel">
+<section class="panel" id="rak">
 
     <div class="panel-head">
-        <h2>Katalog Ebook</h2>
-        <p class="hint">Klik kartu untuk memilih ebook.</p>
+        <h2>Rak ebook</h2>
+        <span class="hint">
+            <?= count($ebooks) ?> judul<?= $isFiltered ? ' cocok dengan filter' : ' di rak' ?>
+        </span>
     </div>
+
+    <form method="GET" class="filter-bar" action="<?= e(app_url('pages/member/borrowings.php')) ?>#rak">
+
+        <div class="filter-field">
+            <label for="search">Kata kunci</label>
+            <input
+                type="search"
+                id="search"
+                name="search"
+                class="search-input"
+                placeholder="Judul, penulis, penerbit, atau ISBN"
+                value="<?= e($keyword) ?>"
+            >
+        </div>
+
+        <div class="filter-field">
+            <label for="category">Kategori</label>
+            <select name="category" id="category" class="category-select">
+
+                <option value="">Semua kategori</option>
+
+                <?php foreach ($categories as $item): ?>
+
+                    <?php $categoryId = (int) ($item['id_category'] ?? 0); ?>
+
+                    <option
+                        value="<?= $categoryId ?>"
+                        <?= $category === $categoryId ? 'selected' : '' ?>
+                    ><?= e($item['name'] ?? '') ?></option>
+
+                <?php endforeach; ?>
+
+            </select>
+        </div>
+
+        <div class="filter-actions">
+
+            <button type="submit" class="btn btn-primary">
+                <?= icon('search') ?>
+                Cari
+            </button>
+
+            <?php if ($isFiltered): ?>
+                <a href="<?= e(app_url('pages/member/borrowings.php')) ?>#rak" class="btn btn-quiet">
+                    Reset
+                </a>
+            <?php endif; ?>
+
+        </div>
+
+    </form>
 
     <?php if (empty($ebooks)): ?>
 
-        <p class="empty">Belum ada ebook yang tersedia.</p>
+        <div class="shelf-empty">
+            <?= icon('shelf') ?>
+
+            <?php if ($isFiltered): ?>
+                <h2>Tidak ada judul yang cocok</h2>
+                <p>Coba kata kunci lain atau pilih kategori yang berbeda.</p>
+                <p>
+                    <a href="<?= e(app_url('pages/member/borrowings.php')) ?>#rak" class="btn btn-secondary">
+                        Reset filter
+                    </a>
+                </p>
+            <?php else: ?>
+                <h2>Rak masih kosong</h2>
+                <p>Belum ada ebook yang bisa dipinjam saat ini.</p>
+            <?php endif; ?>
+        </div>
 
     <?php else: ?>
 
         <form id="borrowForm">
 
-            <div class="book-grid">
-
+            <div class="shelf-grid">
                 <?php foreach ($ebooks as $ebook): ?>
                     <?php
                     $isAvailable = ($ebook['status'] ?? '') === 'available'
@@ -89,6 +168,8 @@ require __DIR__ . '/../partials/dashboard-header.php';
                         ? strtoupper($match[0])
                         : '';
                     $category = $categoryNames[(int) ($ebook['id_category'] ?? 0)] ?? '';
+                    $ebookId = (int) ($ebook['id_ebook'] ?? 0);
+                    $isPicked = $pilih === $ebookId && $isAvailable;
                     ?>
                     <label class="book-card<?= $isAvailable ? '' : ' is-unavailable' ?>">
 
@@ -116,13 +197,16 @@ require __DIR__ . '/../partials/dashboard-header.php';
 
                         <span class="book-body">
 
-                            <?php if ($category !== ''): ?>
-                                <span class="book-category"><?= e($category) ?></span>
-                            <?php endif; ?>
+                            <span class="book-label">
+                                <span class="book-cat band-<?= Shelf::band($category) ?>">
+                                    <?= e($category !== '' ? $category : 'Lainnya') ?>
+                                </span>
+                                <span class="call-code"><?= e(Shelf::code($category, $ebookId)) ?></span>
+                            </span>
 
                             <span class="book-title"><?= e($title) ?></span>
 
-                            <span class="book-author"><?= e($ebook['author'] ?? '-') ?></span>
+                            <span class="book-author"><?= e($ebook['author'] ?? '—') ?></span>
 
                             <span class="book-desc">
                                 <?= e($ebook['description'] ?? 'Tidak ada deskripsi.') ?>
@@ -130,16 +214,19 @@ require __DIR__ . '/../partials/dashboard-header.php';
 
                             <span class="book-foot">
 
-                                <span class="book-license">
-                                    Sisa <?= (int) ($ebook['license_limit'] ?? 0) ?>
+                                <span class="license">
+                                    <?= (int) ($ebook['license_limit'] ?? 0) ?>/<?= (int) ($ebook['license_total'] ?? 0) ?>
+                                    <small>salinan</small>
                                 </span>
 
                                 <input
                                     type="checkbox"
                                     class="book-check"
                                     name="ebook_ids[]"
-                                    value="<?= (int) ($ebook['id_ebook'] ?? 0) ?>"
+                                    value="<?= $ebookId ?>"
+                                    aria-label="Pilih <?= e($title) ?>"
                                     <?= $isAvailable ? '' : 'disabled' ?>
+                                    <?= $isPicked ? 'checked' : '' ?>
                                 >
 
                             </span>
@@ -151,10 +238,17 @@ require __DIR__ . '/../partials/dashboard-header.php';
 
             </div>
 
-            <div class="actions">
-                <button type="submit" class="btn btn-primary">
-                    Ajukan Peminjaman
-                </button>
+            <div class="borrow-bar">
+                <p class="borrow-count" id="borrowCount" aria-live="polite">
+                    Belum ada judul dipilih
+                </p>
+
+                <button
+                    type="submit"
+                    class="btn btn-primary"
+                    id="borrowSubmit"
+                    disabled
+                >Ajukan peminjaman</button>
             </div>
 
         </form>
@@ -166,7 +260,8 @@ require __DIR__ . '/../partials/dashboard-header.php';
 <section class="panel">
 
     <div class="panel-head">
-        <h2>Pengajuan Peminjaman Saya</h2>
+        <h2>Pengajuan saya</h2>
+        <span class="hint"><?= count($transactions) ?> pengajuan</span>
     </div>
 
     <div class="table-wrap">
@@ -175,8 +270,8 @@ require __DIR__ . '/../partials/dashboard-header.php';
                 <tr>
                     <th>ID</th>
                     <th>Ebook</th>
-                    <th>Tanggal Pengajuan</th>
-                    <th>Jatuh Tempo</th>
+                    <th>Diajukan</th>
+                    <th>Jatuh tempo</th>
                     <th>Status</th>
                     <th>Aksi</th>
                 </tr>
@@ -195,19 +290,41 @@ require __DIR__ . '/../partials/dashboard-header.php';
                     $transactionId = (int) ($transaction['id_transaction'] ?? 0);
                     $status = $transaction['status'] ?? 'pending';
 
-                    $ebookTitles = array_filter(array_map(
+                    $ebookTitles = array_values(array_filter(array_map(
                         fn($detail) => $detail['ebook_title'] ?? '',
                         $transaction['details']
-                    ));
+                    )));
 
                     $startDate = $transaction['details'][0]['start_date']
-                        ?? ($transaction['create_at'] ?? '-');
+                        ?? ($transaction['create_at'] ?? '');
+
+                    $remaining = Shelf::remaining(Shelf::daysLeft($transaction['due_date']));
+                    $meter = max(0, min(100, (int) round($remaining / 7 * 100)));
                     ?>
                     <tr>
-                        <td>#<?= $transactionId ?></td>
-                        <td><?= e(implode(', ', $ebookTitles) ?: '-') ?></td>
-                        <td><?= e($startDate) ?></td>
-                        <td><?= e($transaction['due_date'] !== '' ? $transaction['due_date'] : '-') ?></td>
+                        <td class="id">#<?= $transactionId ?></td>
+                        <td>
+                            <?= e($ebookTitles[0] ?? '—') ?>
+                            <?php if (count($ebookTitles) > 1): ?>
+                                <span class="id">+<?= count($ebookTitles) - 1 ?></span>
+                            <?php endif; ?>
+                        </td>
+                        <td class="number"><?= e(Shelf::date($startDate)) ?></td>
+                        <td>
+                            <div class="due<?= $remaining === 0 ? ' is-overdue' : ($remaining <= 2 ? ' is-low' : '') ?>">
+                                <span class="due-date">
+                                    <?= e($transaction['due_date'] !== ''
+                                        ? Shelf::date($transaction['due_date'])
+                                        : '—') ?>
+                                </span>
+                                <?php if ($status === 'approved' && $transaction['due_date'] !== ''): ?>
+                                    <span class="due-note"><?= e(Shelf::remainingLabel(Shelf::daysLeft($transaction['due_date']))) ?></span>
+                                    <span class="meter" aria-hidden="true">
+                                        <span style="width: <?= $meter ?>%"></span>
+                                    </span>
+                                <?php endif; ?>
+                            </div>
+                        </td>
                         <td>
                             <span class="badge badge-<?= e($status) ?>">
                                 <?= e($statusLabels[$status] ?? $status) ?>
@@ -218,7 +335,7 @@ require __DIR__ . '/../partials/dashboard-header.php';
                             <?php if ($status === 'pending'): ?>
                                 <button
                                     type="button"
-                                    class="btn btn-outline cancel-transaction"
+                                    class="btn btn-danger btn-sm cancel-transaction"
                                     data-id="<?= $transactionId ?>"
                                 >Batalkan</button>
                             <?php elseif ($status === 'approved'): ?>
@@ -232,18 +349,18 @@ require __DIR__ . '/../partials/dashboard-header.php';
                                     <?php $hasAction = true; ?>
 
                                     <?php if (!empty($detail['is_overdue'])): ?>
-                                        <span class="badge badge-overdue">Jatuh tempo</span>
+                                        <span class="badge badge-overdue">Lewat tenggat</span>
                                     <?php else: ?>
                                         <a
-                                            class="btn btn-primary"
+                                            class="btn btn-primary btn-sm"
                                             href="<?= e(app_url('pages/member/reader.php?id=' . (int) ($detail['id_ebook'] ?? 0))) ?>"
-                                        >Baca <?= e($detail['ebook_title'] ?: 'Ebook') ?></a>
+                                        >Baca</a>
                                     <?php endif; ?>
                                 <?php endforeach; ?>
 
-                                <?php if (!$hasAction): ?>-<?php endif; ?>
+                                <?php if (!$hasAction): ?>—<?php endif; ?>
                             <?php else: ?>
-                                -
+                                —
                             <?php endif; ?>
                             </div>
                         </td>
@@ -265,6 +382,10 @@ function showMessage(text, success) {
     messageBox.textContent = text;
     messageBox.className = 'notice ' + (success ? 'notice-success' : 'notice-error');
     messageBox.hidden = false;
+
+    if (success && window.flashMessage) {
+        window.flashMessage(text, true);
+    }
 }
 
 async function sendRequest(url, data) {
@@ -285,6 +406,21 @@ async function sendRequest(url, data) {
 const borrowForm = document.getElementById('borrowForm');
 
 if (borrowForm) {
+    const countNote = document.getElementById('borrowCount');
+    const submitButton = document.getElementById('borrowSubmit');
+    const checkboxes = borrowForm.querySelectorAll('input[name="ebook_ids[]"]');
+
+    function syncSelection() {
+        const selected = borrowForm.querySelectorAll('input[name="ebook_ids[]"]:checked').length;
+
+        countNote.textContent = selected === 0
+            ? 'Belum ada judul dipilih'
+            : selected + ' judul dipilih';
+        submitButton.disabled = selected === 0;
+    }
+
+    checkboxes.forEach(checkbox => checkbox.addEventListener('change', syncSelection));
+    syncSelection();
     borrowForm.addEventListener('submit', async function (event) {
         event.preventDefault();
 
@@ -312,7 +448,7 @@ if (borrowForm) {
 
 document.querySelectorAll('.cancel-transaction').forEach(button => {
     button.addEventListener('click', async function () {
-        if (!confirm('Batalkan pengajuan peminjaman ini?')) return;
+        if (!window.armAction(this, 'Klik lagi untuk membatalkan')) return;
 
         const data = new FormData();
         data.append('id_transaction', this.dataset.id);

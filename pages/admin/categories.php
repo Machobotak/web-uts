@@ -4,6 +4,7 @@ require_once __DIR__ . '/../../config/bootstrap.php';
 
 use App\Services\AuthService;
 use App\Services\CatalogService;
+use App\Support\Shelf;
 use App\Middleware\AuthMiddleware;
 
 $authService = new AuthService($storage);
@@ -18,8 +19,8 @@ $catalogService = new CatalogService($storage);
 $categories = $catalogService->getCategoriesWithEbookCount();
 
 $pageTitle = 'Manajemen Kategori | Digital Library';
-$pageHeading = 'Manajemen Kategori';
-$pageSubtitle = 'Tambah, ubah, dan hapus kategori koleksi ebook.';
+$pageHeading = 'Manajemen kategori';
+$pageSubtitle = 'Kategori menentukan pita warna dan huruf depan nomor panggil.';
 $activeNav = 'categories';
 $userName = $admin->getName();
 $userRole = 'admin';
@@ -28,26 +29,26 @@ require __DIR__ . '/../partials/dashboard-header.php';
 
 ?>
 
+<div id="message" class="notice" hidden></div>
+
 <section class="panel">
 
     <div class="panel-head">
-        <h2>Tambah Kategori Baru</h2>
+        <h2>Tambah kategori</h2>
     </div>
-
-    <div id="message" class="notice" hidden></div>
 
     <form id="categoryForm">
 
         <div class="form-grid">
 
             <div class="field">
-                <label for="name">Nama Kategori</label>
+                <label for="name">Nama kategori</label>
 
                 <input
                     id="name"
                     name="name"
                     type="text"
-                    placeholder="Masukkan nama kategori"
+                    placeholder="Mis. Novel, Sejarah, Teknik"
                     required
                     maxlength="100"
                 >
@@ -61,13 +62,16 @@ require __DIR__ . '/../partials/dashboard-header.php';
             <textarea
                 id="description"
                 name="description"
-                placeholder="Masukkan deskripsi kategori"
+                placeholder="Keterangan singkat isi kategori"
             ></textarea>
         </div>
 
-        <button type="submit" class="btn btn-primary">
-            Tambah Kategori
-        </button>
+        <div class="actions">
+            <button type="submit" class="btn btn-primary">
+                <?= icon('plus') ?>
+                Tambah kategori
+            </button>
+        </div>
 
     </form>
 
@@ -76,17 +80,19 @@ require __DIR__ . '/../partials/dashboard-header.php';
 <section class="panel">
 
     <div class="panel-head">
-        <h2>Daftar Kategori (<?= count($categories) ?>)</h2>
+        <h2>Daftar kategori</h2>
+        <span class="hint"><?= count($categories) ?> kategori</span>
     </div>
 
     <div class="table-wrap">
         <table class="table">
             <thead>
                 <tr>
-                    <th>No</th>
-                    <th>Nama Kategori</th>
+                    <th class="number">No</th>
+                    <th>Pita</th>
+                    <th>Nama</th>
                     <th>Deskripsi</th>
-                    <th>Jumlah Ebook</th>
+                    <th class="number">Ebook</th>
                     <th>Aksi</th>
                 </tr>
             </thead>
@@ -94,7 +100,7 @@ require __DIR__ . '/../partials/dashboard-header.php';
             <tbody>
             <?php if (empty($categories)): ?>
                 <tr>
-                    <td colspan="5" class="empty">Belum ada data kategori.</td>
+                    <td colspan="6" class="empty">Belum ada data kategori.</td>
                 </tr>
             <?php else: ?>
                 <?php foreach ($categories as $index => $category): ?>
@@ -104,26 +110,29 @@ require __DIR__ . '/../partials/dashboard-header.php';
                     $categoryDescription = $category['description'] ?? '';
                     ?>
                     <tr>
-                        <td><?= $index + 1 ?></td>
+                        <td class="number"><?= $index + 1 ?></td>
+                        <td>
+                            <span class="book-cat band-<?= Shelf::band($categoryName) ?>">
+                                <?= e(Shelf::mark($categoryName)) ?>
+                            </span>
+                        </td>
                         <td><?= e($categoryName) ?></td>
-                        <td><?= e($categoryDescription !== '' ? $categoryDescription : '-') ?></td>
+                        <td><?= e($categoryDescription !== '' ? $categoryDescription : '—') ?></td>
                         <td class="number"><?= (int) ($category['ebook_count'] ?? 0) ?></td>
                         <td>
                             <div class="actions">
                                 <button
                                     type="button"
-                                    class="btn btn-secondary"
-                                    onclick="editCategory(
-                                        <?= $categoryId ?>,
-                                        <?= e(json_encode($categoryName)) ?>,
-                                        <?= e(json_encode($categoryDescription)) ?>
-                                    )"
+                                    class="btn btn-secondary btn-sm edit-category"
+                                    data-id="<?= $categoryId ?>"
+                                    data-name="<?= e($categoryName) ?>"
+                                    data-description="<?= e($categoryDescription) ?>"
                                 >Edit</button>
 
                                 <button
                                     type="button"
-                                    class="btn btn-outline"
-                                    onclick="deleteCategory(<?= $categoryId ?>)"
+                                    class="btn btn-danger btn-sm delete-category"
+                                    data-id="<?= $categoryId ?>"
                                 >Hapus</button>
                             </div>
                         </td>
@@ -148,6 +157,10 @@ function showMessage(text, success) {
     message.textContent = text;
     message.className = 'notice ' + (success ? 'notice-success' : 'notice-error');
     message.hidden = false;
+
+    if (success && window.flashMessage) {
+        window.flashMessage(text, true);
+    }
 }
 
 form.addEventListener('submit', async function (event) {
@@ -179,55 +192,125 @@ form.addEventListener('submit', async function (event) {
     }
 });
 
-async function editCategory(id, oldName, oldDescription) {
-    const name = prompt('Nama kategori:', oldName);
-    if (name === null) return;
-
-    const description = prompt('Deskripsi kategori:', oldDescription);
-    if (description === null) return;
-
-    try {
-        const response = await fetch(updateUrl, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({id_category: id, name: name, description: description})
-        });
-
-        const result = await response.json();
-
-        if (!response.ok || !result.success) {
-            throw new Error(result.message || 'Gagal mengubah kategori.');
-        }
-
-        alert(result.message);
-        location.reload();
-    } catch (error) {
-        alert(error.message);
-    }
+function closeEditor() {
+    document.querySelectorAll('.editor-row').forEach(row => row.remove());
 }
 
-async function deleteCategory(id) {
-    if (!confirm('Yakin ingin menghapus kategori ini?')) return;
+document.querySelectorAll('.edit-category').forEach(button => {
+    button.addEventListener('click', function () {
+        closeEditor();
 
-    try {
-        const response = await fetch(deleteUrl, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({id_category: id})
+        const row = this.closest('tr');
+        const editor = document.createElement('tr');
+
+        editor.className = 'editor-row';
+        editor.innerHTML = `
+            <td colspan="6">
+                <form class="row-editor">
+                    <div class="field">
+                        <label for="editCategoryName">Nama kategori</label>
+                        <input
+                            id="editCategoryName"
+                            name="name"
+                            type="text"
+                            maxlength="100"
+                            required
+                        >
+                    </div>
+                    <div class="field">
+                        <label for="editCategoryDescription">Deskripsi</label>
+                        <input
+                            id="editCategoryDescription"
+                            name="description"
+                            type="text"
+                        >
+                    </div>
+                    <div class="row-actions">
+                        <button type="submit" class="btn btn-primary">Simpan</button>
+                        <button type="button" class="btn btn-secondary" data-cancel>Batal</button>
+                    </div>
+                </form>
+            </td>`;
+
+        const form = editor.querySelector('form');
+        const nameInput = form.elements.name;
+        const descriptionInput = form.elements.description;
+
+        nameInput.value = this.dataset.name;
+        descriptionInput.value = this.dataset.description;
+
+        row.after(editor);
+        nameInput.focus();
+        nameInput.select();
+
+        form.querySelector('[data-cancel]').addEventListener('click', closeEditor);
+
+        form.addEventListener('submit', async function (event) {
+            event.preventDefault();
+
+            const name = nameInput.value.trim();
+
+            if (name === '') {
+                showMessage('Nama kategori tidak boleh kosong.', false);
+                nameInput.focus();
+                return;
+            }
+
+            const data = {
+                id_category: Number(button.dataset.id),
+                name: name,
+                description: descriptionInput.value.trim()
+            };
+
+            try {
+                const response = await fetch(updateUrl, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (!response.ok || !result.success) {
+                    throw new Error(result.message || 'Gagal mengubah kategori.');
+                }
+
+                closeEditor();
+                showMessage(result.message, true);
+                setTimeout(() => location.reload(), 600);
+            } catch (error) {
+                showMessage(error.message, false);
+            }
         });
+    });
+});
 
-        const result = await response.json();
-
-        if (!response.ok || !result.success) {
-            throw new Error(result.message || 'Gagal menghapus kategori.');
+document.querySelectorAll('.delete-category').forEach(button => {
+    button.addEventListener('click', async function () {
+        if (!window.armAction(this, 'Klik lagi untuk menghapus')) {
+            return;
         }
 
-        alert(result.message);
-        location.reload();
-    } catch (error) {
-        alert(error.message);
-    }
-}
+        try {
+            const response = await fetch(deleteUrl, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({id_category: Number(this.dataset.id)})
+            });
+
+            const result = await response.json();
+
+            if (!response.ok || !result.success) {
+                throw new Error(result.message || 'Gagal menghapus kategori.');
+            }
+
+            showMessage(result.message, true);
+            setTimeout(() => location.reload(), 600);
+        } catch (error) {
+            showMessage(error.message, false);
+        }
+    });
+});
 </script>
 
 <?php require __DIR__ . '/../partials/dashboard-footer.php'; ?>

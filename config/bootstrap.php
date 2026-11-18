@@ -40,6 +40,15 @@ function app_url(string $path = ''): string
     return rtrim($root, '/') . '/' . ltrim($path, '/');
 }
 
+// Versi aset dari waktu ubah berkas, agar CSS/JS baru tidak tertahan cache.
+function asset_url(string $path): string
+{
+    $fullPath = dirname(__DIR__) . '/' . ltrim($path, '/');
+    $modified = is_file($fullPath) ? filemtime($fullPath) : false;
+
+    return app_url($path) . ($modified === false ? '' : '?v=' . $modified);
+}
+
 // Menentukan apakah response sebaiknya JSON.
 // Klien HTML (browser) mengirim Accept berisi text/html,
 // sedangkan Postman/HTTP client lain tidak.

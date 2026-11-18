@@ -61,8 +61,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $pageTitle = 'Profil Saya | Digital Library';
-$pageHeading = 'Profil Saya';
-$pageSubtitle = 'Kelola informasi akun dan keamanan password kamu.';
+$pageHeading = 'Profil saya';
+$pageSubtitle = 'Perbarui data akun dan password.';
 $activeNav = 'profile';
 $userName = $profile->getName();
 $userRole = 'member';
@@ -80,7 +80,8 @@ require __DIR__ . '/../partials/dashboard-header.php';
 <section class="panel">
 
     <div class="panel-head">
-        <h2>Informasi Profil</h2>
+        <h2>Informasi profil</h2>
+        <span class="badge badge-active">Member #<?= $memberId ?></span>
     </div>
 
     <form method="POST">
@@ -90,7 +91,7 @@ require __DIR__ . '/../partials/dashboard-header.php';
         <div class="form-grid">
 
             <div class="field">
-                <label for="profile-name">Nama Lengkap</label>
+                <label for="profile-name">Nama lengkap</label>
 
                 <input
                     type="text"
@@ -135,9 +136,11 @@ require __DIR__ . '/../partials/dashboard-header.php';
             ><?= e($profile->toPublicArray()['address'] ?? '') ?></textarea>
         </div>
 
-        <button type="submit" class="btn btn-primary">
-            Simpan Perubahan
-        </button>
+        <div class="actions">
+            <button type="submit" class="btn btn-primary">
+                Simpan perubahan
+            </button>
+        </div>
 
     </form>
 
@@ -146,7 +149,8 @@ require __DIR__ . '/../partials/dashboard-header.php';
 <section class="panel">
 
     <div class="panel-head">
-        <h2>Ganti Password</h2>
+        <h2>Ganti password</h2>
+        <span class="hint">Minimal 8 karakter</span>
     </div>
 
     <form method="POST">
@@ -156,7 +160,7 @@ require __DIR__ . '/../partials/dashboard-header.php';
         <div class="form-grid">
 
             <div class="field">
-                <label for="old-password">Password Lama</label>
+                <label for="old-password">Password lama</label>
 
                 <input
                     type="password"
@@ -168,7 +172,7 @@ require __DIR__ . '/../partials/dashboard-header.php';
             </div>
 
             <div class="field">
-                <label for="new-password">Password Baru</label>
+                <label for="new-password">Password baru</label>
 
                 <input
                     type="password"
@@ -182,11 +186,11 @@ require __DIR__ . '/../partials/dashboard-header.php';
 
         </div>
 
-        <p class="subtitle">Minimal 8 karakter dan berbeda dari password lama.</p>
-
-        <button type="submit" class="btn btn-primary">
-            Ganti Password
-        </button>
+        <div class="actions">
+            <button type="submit" class="btn btn-primary">
+                Ganti password
+            </button>
+        </div>
 
     </form>
 

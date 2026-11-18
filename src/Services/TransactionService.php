@@ -181,6 +181,48 @@ class TransactionService
     }
 
     /**
+     * Mencari peminjaman aktif milik member untuk satu ebook.
+     *
+     * Mengembalikan ['detail' => array, 'overdue' => bool] atau null bila
+     * tidak ada detail berstatus aktif/overdue pada transaksi yang disetujui.
+     */
+    public function findHeldLoan(int $idUser, int $idEbook): ?array
+    {
+        if ($idUser < 1 || $idEbook < 1) {
+            return null;
+        }
+
+        foreach ($this->getTransactionsByUser($idUser) as $transaction) {
+            if (($transaction['status'] ?? '') !== Transaction::STATUS_APPROVED) {
+                continue;
+            }
+
+            $details = $this->getTransactionDetails(
+                (int) ($transaction['id_transaction'] ?? 0)
+            );
+
+            foreach ($details as $detail) {
+                if ((int) ($detail['id_ebook'] ?? 0) !== $idEbook) {
+                    continue;
+                }
+
+                $loan = new TransactionDetail($detail);
+
+                if (!$loan->isHoldingLicense()) {
+                    continue;
+                }
+
+                return [
+                    'detail' => $detail,
+                    'overdue' => $loan->isOverdue(),
+                ];
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Mencari detail transaksi berdasarkan ID.
      */
     public function findDetailById(int $id): ?array

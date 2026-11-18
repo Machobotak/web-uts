@@ -1,2 +1,5 @@
 <?php
-// Front controller: semua request lewat sini (router sederhana).
+
+// Entry point document root publik -> halaman beranda.
+header('Location: ../pages/public/home.php');
+exit;

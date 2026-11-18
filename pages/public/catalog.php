@@ -3,6 +3,7 @@
 require_once __DIR__ . '/../../config/bootstrap.php';
 
 use App\Services\CatalogService;
+use App\Support\Shelf;
 
 $catalogService = new CatalogService($storage);
 
@@ -16,12 +17,9 @@ $ebooks = $catalogService->searchEbooks([
 
 $categoryNames = $catalogService->getCategoryNameMap();
 
-foreach ($ebooks as $index => $ebook) {
-    $ebooks[$index]['category_name'] =
-        $categoryNames[(int) ($ebook['id_category'] ?? 0)] ?? '';
-}
-
 $categories = $catalogService->getAllCategories();
+
+$isFiltered = $keyword !== '' || $category > 0;
 
 $pageTitle = 'Katalog E-Book - Digital Library';
 $activeNav = 'catalog';
@@ -31,28 +29,44 @@ require __DIR__ . '/../partials/header.php';
 
 ?>
 
-<main class="container">
+<div class="container catalog">
 
-    <section class="hero">
-        <h1>Katalog E-Book</h1>
-        <p>Temukan berbagai koleksi e-book yang tersedia di Digital Library.</p>
-    </section>
+    <div class="catalog-head">
 
-    <section class="filter-box">
+        <div>
+            <h1>Katalog e-book</h1>
+            <p>
+                Setiap kartu membawa nomor panggil dan pita kategorinya.
+                Pilih judul untuk melihat keterangan lengkap.
+            </p>
+        </div>
 
-        <form method="GET" class="filter-form">
+        <p class="catalog-count">
+            <strong><?= count($ebooks) ?></strong> judul
+            <?= $isFiltered ? 'cocok dengan filter' : 'di rak' ?>
+        </p>
 
+    </div>
+
+    <form method="GET" class="filter-bar">
+
+        <div class="filter-field">
+            <label for="search">Kata kunci</label>
             <input
-                type="text"
+                type="search"
+                id="search"
                 name="search"
                 class="search-input"
-                placeholder="Cari judul, penulis, atau deskripsi..."
+                placeholder="Judul, penulis, penerbit, atau ISBN"
                 value="<?= htmlspecialchars($keyword) ?>"
             >
+        </div>
 
-            <select name="category" class="category-select">
+        <div class="filter-field">
+            <label for="category">Kategori</label>
+            <select name="category" id="category" class="category-select">
 
-                <option value="">Semua Kategori</option>
+                <option value="">Semua kategori</option>
 
                 <?php foreach ($categories as $item): ?>
 
@@ -68,53 +82,44 @@ require __DIR__ . '/../partials/header.php';
                 <?php endforeach; ?>
 
             </select>
+        </div>
+
+        <div class="filter-actions">
 
             <button type="submit" class="btn btn-primary">
+                <?= icon('search') ?>
                 Cari
             </button>
 
-        </form>
+            <?php if ($isFiltered): ?>
+                <a href="<?= app_url('pages/public/catalog.php') ?>" class="btn btn-quiet">
+                    Reset
+                </a>
+            <?php endif; ?>
 
-    </section>
+        </div>
 
-    <?php if ($keyword !== '' || $category > 0): ?>
+    </form>
 
-        <p class="result-info">
-            Hasil pencarian:
-            <strong><?= count($ebooks) ?></strong> e-book ditemukan.
-        </p>
-
-    <?php endif; ?>
-
-    <section class="ebook-grid">
+    <section class="shelf-grid" aria-label="Rak e-book">
 
         <?php if (empty($ebooks)): ?>
 
-            <div class="empty">
+            <div class="shelf-empty">
 
-                <?php if ($keyword !== '' || $category > 0): ?>
+                <?= icon('shelf') ?>
 
-                    <h2>E-Book Tidak Ditemukan</h2>
+                <?php if ($isFiltered): ?>
 
+                    <h2>Tidak ada judul yang cocok</h2>
                     <p>
-                        Tidak ada e-book yang cocok dengan kata kunci
-                        atau kategori yang dipilih.
+                        Coba kata kunci lain atau pilih kategori yang berbeda.
                     </p>
-
-                    <a
-                        href="<?= app_url('pages/public/catalog.php') ?>"
-                        class="btn btn-primary"
-                    >
-                        Reset Pencarian
-                    </a>
 
                 <?php else: ?>
 
-                    <h2>Belum Ada E-Book</h2>
-
-                    <p>
-                        Saat ini belum ada koleksi e-book yang tersedia.
-                    </p>
+                    <h2>Rak masih kosong</h2>
+                    <p>Belum ada koleksi e-book yang tersedia saat ini.</p>
 
                 <?php endif; ?>
 
@@ -124,58 +129,85 @@ require __DIR__ . '/../partials/header.php';
 
             <?php foreach ($ebooks as $ebook): ?>
 
-                <article class="ebook-card">
+                <?php
+                $ebookId = (int) ($ebook['id_ebook'] ?? 0);
+                $title = $ebook['title'] ?? 'Tanpa Judul';
+                $categoryName = $categoryNames[(int) ($ebook['id_category'] ?? 0)] ?? '';
+                $cover = $ebook['cover'] ?? '';
+                $licenseLimit = (int) ($ebook['license_limit'] ?? 0);
+                $licenseTotal = (int) ($ebook['license_total'] ?? $licenseLimit);
+                $available = $licenseLimit > 0;
+                ?>
 
-                    <div class="cover">
+                <article class="book-card<?= $available ? '' : ' is-unavailable' ?>">
 
-                        <?php if (!empty($ebook['cover'])): ?>
+                    <a
+                        class="book-card-link"
+                        href="<?= app_url('pages/public/detail.php?id=' . $ebookId) ?>"
+                        aria-label="Detail <?= htmlspecialchars($title) ?>"
+                    ></a>
 
+                    <div class="book-cover" aria-hidden="true">
+
+                        <span class="book-initial">
+                            <?= htmlspecialchars(mb_strtoupper(mb_substr($title, 0, 1))) ?>
+                        </span>
+
+                        <?php if ($cover !== ''): ?>
                             <img
-                                src="<?= htmlspecialchars(app_url('public/uploads/covers/' . rawurlencode($ebook['cover']))) ?>"
-                                alt="<?= htmlspecialchars($ebook['title'] ?? 'Cover E-Book') ?>"
-                                onerror="this.parentElement.classList.add('is-empty'); this.remove();"
+                                src="<?= htmlspecialchars(app_url('public/uploads/covers/' . rawurlencode($cover))) ?>"
+                                alt=""
+                                onerror="this.remove();"
                             >
-
-                        <?php else: ?>
-
-                            <span>Cover E-Book</span>
-
                         <?php endif; ?>
+
+                        <span class="book-state">
+                            <?= $available ? 'Tersedia' : 'Habis' ?>
+                        </span>
 
                     </div>
 
-                    <div class="card-content">
+                    <div class="book-body">
 
-                        <?php if (!empty($ebook['category_name'])): ?>
+                        <div class="book-label">
 
-                            <span class="category">
-                                <?= htmlspecialchars($ebook['category_name']) ?>
+                            <?php if ($categoryName !== ''): ?>
+                                <span class="book-cat band-<?= Shelf::band($categoryName) ?>">
+                                    <?= htmlspecialchars($categoryName) ?>
+                                </span>
+                            <?php endif; ?>
+
+                            <span class="call-code">
+                                <?= htmlspecialchars(Shelf::code($categoryName, $ebookId)) ?>
                             </span>
 
-                        <?php endif; ?>
+                        </div>
 
-                        <h2>
-                            <?= htmlspecialchars($ebook['title'] ?? 'Tanpa Judul') ?>
-                        </h2>
+                        <h2 class="book-title"><?= htmlspecialchars($title) ?></h2>
 
-                        <p class="author">
+                        <p class="book-author">
                             <?= htmlspecialchars($ebook['author'] ?? 'Penulis tidak diketahui') ?>
                         </p>
 
                         <?php if (!empty($ebook['description'])): ?>
-
-                            <p class="description">
+                            <p class="book-desc">
                                 <?= htmlspecialchars($ebook['description']) ?>
                             </p>
-
                         <?php endif; ?>
 
-                        <a
-                            href="<?= app_url('pages/public/detail.php?id=' . urlencode((string) ($ebook['id_ebook'] ?? ''))) ?>"
-                            class="detail-link"
-                        >
-                            Lihat Detail →
-                        </a>
+                        <div class="book-foot">
+
+                            <span class="license">
+                                <?= $licenseLimit ?>/<?= $licenseTotal ?>
+                                <small>lisensi</small>
+                            </span>
+
+                            <span class="book-link">
+                                Lihat detail
+                                <?= icon('arrow-right') ?>
+                            </span>
+
+                        </div>
 
                     </div>
 
@@ -187,6 +219,6 @@ require __DIR__ . '/../partials/header.php';
 
     </section>
 
-</main>
+</div>
 
 <?php require __DIR__ . '/../partials/footer.php'; ?>
