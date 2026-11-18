@@ -1,0 +1,456 @@
+/* CSS dashboard admin & member: sidebar, panel, tabel, form.
+   Dimuat lewat pages/partials/dashboard-header.php. */
+
+.layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: 230px;
+    flex-shrink: 0;
+    background: #172554;
+    color: #e2e8f0;
+    padding: 22px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.brand {
+    font-size: 18px;
+    font-weight: bold;
+    color: #ffffff;
+    padding: 0 8px 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    margin-bottom: 8px;
+}
+
+.sidebar-label {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #93a3bd;
+    padding: 12px 8px 6px;
+}
+
+.nav-link {
+    display: block;
+    padding: 10px 12px;
+    border-radius: var(--radius);
+    color: #e2e8f0;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.nav-link:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.nav-link.is-active {
+    background: var(--accent);
+    color: #ffffff;
+    font-weight: bold;
+}
+
+.logout-form {
+    margin-top: auto;
+}
+
+.logout-button {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: var(--radius);
+    background: transparent;
+    color: #e2e8f0;
+    font-size: 14px;
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.logout-button:hover {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.main {
+    flex: 1;
+    min-width: 0;
+    padding: 24px 4%;
+}
+
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 22px;
+}
+
+.topbar h1 {
+    font-size: 22px;
+    color: var(--ink-strong);
+}
+
+.subtitle {
+    margin-top: 6px;
+    color: var(--muted);
+    font-size: 14px;
+}
+
+.account {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 8px 16px;
+    font-size: 13px;
+    color: var(--text-soft);
+}
+
+/* Kartu statistik dashboard. */
+.stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 14px;
+    margin-bottom: 22px;
+}
+
+.stat {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 18px;
+}
+
+.stat-label {
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 8px;
+}
+
+.stat-value {
+    font-size: 26px;
+    font-weight: bold;
+    color: var(--ink-strong);
+}
+
+/* Panel dan tabel. */
+.panel {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.panel-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+}
+
+.panel-head h2 {
+    font-size: 17px;
+    color: var(--ink-strong);
+}
+
+.table-wrap {
+    overflow-x: auto;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.table th,
+.table td {
+    text-align: left;
+    padding: 11px 10px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: middle;
+}
+
+.table th {
+    background: var(--page);
+    color: var(--text-soft);
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+.table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.table .number {
+    color: var(--muted);
+    text-align: right;
+    white-space: nowrap;
+}
+
+.table .actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+/* Form. */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 14px;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 14px;
+}
+
+.field label {
+    font-size: 13px;
+    color: var(--text-soft);
+}
+
+.field input,
+.field select,
+.field textarea {
+    padding: 10px 12px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-family: inherit;
+    background: var(--surface);
+    color: var(--ink);
+}
+
+.field textarea {
+    min-height: 90px;
+    resize: vertical;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.inline-form {
+    display: inline;
+}
+
+/* Status dan badge. */
+.badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: bold;
+    background: var(--page);
+    color: var(--text-soft);
+    border: 1px solid var(--line);
+}
+
+.badge-pending {
+    background: #fef3c7;
+    color: #92400e;
+    border-color: #fde68a;
+}
+
+.badge-approved {
+    background: #dcfce7;
+    color: #166534;
+    border-color: #bbf7d0;
+}
+
+.badge-rejected,
+.badge-cancelled {
+    background: #fee2e2;
+    color: #991b1b;
+    border-color: #fecaca;
+}
+
+.badge-completed,
+.badge-returned {
+    background: var(--accent-soft);
+    color: var(--accent-dark);
+    border-color: #bfdbfe;
+}
+
+.badge-active {
+    background: #e0f2fe;
+    color: #075985;
+    border-color: #bae6fd;
+}
+
+.badge-overdue {
+    background: #fee2e2;
+    color: #991b1b;
+    border-color: #fecaca;
+}
+
+/* Pesan. */
+.notice {
+    padding: 12px 14px;
+    border-radius: var(--radius);
+    font-size: 14px;
+    margin-bottom: 18px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+}
+
+.notice-success {
+    background: #ecfdf5;
+    border-color: #a7f3d0;
+    color: #065f46;
+}
+
+.notice-error {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #991b1b;
+}
+
+.empty {
+    padding: 22px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 14px;
+}
+
+/* Ebook grid pada halaman peminjaman. */
+.ebook-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 16px;
+}
+
+.ebook-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    color: inherit;
+    text-decoration: none;
+}
+
+.ebook-card:hover {
+    border-color: var(--accent);
+}
+
+.search-input {
+    padding: 10px 12px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-family: inherit;
+    min-width: 220px;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.ebook-card h3 {
+    font-size: 15px;
+    color: var(--ink-strong);
+}
+
+.ebook-meta {
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
+
+/* Reader. */
+.reader-frame {
+    width: 100%;
+    height: 78vh;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface);
+}
+
+/* Detail transaksi. */
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+    margin-bottom: 18px;
+}
+
+.detail-item {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px 16px;
+}
+
+.detail-item span {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 6px;
+}
+
+.detail-item strong {
+    font-size: 15px;
+    color: var(--ink-strong);
+    font-weight: bold;
+}
+
+@media (max-width: 820px) {
+    .layout {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        width: 100%;
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+        padding: 14px;
+    }
+
+    .brand {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding: 0 8px;
+    }
+
+    .sidebar-label {
+        display: none;
+    }
+
+    .logout-form {
+        margin-top: 0;
+        margin-left: auto;
+    }
+
+    .logout-button {
+        width: auto;
+    }
+
+    .main {
+        padding: 18px 4%;
+    }
+}
