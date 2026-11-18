@@ -3,6 +3,7 @@
  * Partial tata letak: footer + penutup dokumen.
  *
  * Dipakai halaman: require __DIR__ . '/../partials/footer.php';
+ * Halaman tidak perlu membuka <main> sendiri; header.php sudah melakukannya.
  */
 if (!function_exists('app_url')) {
     http_response_code(404);
@@ -10,10 +11,21 @@ if (!function_exists('app_url')) {
 }
 ?>
 
+</main>
+
 <footer class="footer">
-    <p>
-        &copy; <?= date('Y') ?> Digital Library. All rights reserved.
-    </p>
+
+    <div class="footer-inner">
+
+        <span class="logo">
+            <?= icon('shelf', 'logo-mark') ?>
+            Digital Library
+        </span>
+
+        <p>&copy; <?= date('Y') ?> Digital Library. Seluruh hak cipta dilindungi.</p>
+
+    </div>
+
 </footer>
 
 </body>

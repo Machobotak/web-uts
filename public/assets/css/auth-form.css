@@ -1,109 +1,78 @@
-/* CSS kartu form untuk halaman login dan registrasi.
-   Dimuat lewat pages/partials/header.php saat $useAuthStyles = true. */
+/* Halaman masuk dan registrasi: satu kartu di tengah, tanpa hiasan. */
 
 .auth {
-    min-height: calc(100vh - 140px);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 40px 20px;
+    display: grid;
+    place-items: center;
+    min-height: calc(100vh - 64px);
+    padding: clamp(28px, 5vw, 56px) 20px;
 }
 
-.card {
+.auth-card {
     width: 100%;
-    max-width: 480px;
+    max-width: 460px;
+    padding: clamp(22px, 4vw, 34px);
+    border: 1px solid var(--line);
+    border-radius: 16px;
     background: var(--surface);
-    padding: 35px;
-    border-radius: 14px;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
 }
 
-.card-narrow {
-    max-width: 420px;
+.auth-card--wide {
+    max-width: 560px;
 }
 
-.card h1 {
-    text-align: center;
-    margin-bottom: 10px;
-    font-size: 28px;
-}
-
-.card .subtitle {
-    text-align: center;
-    color: var(--muted);
-    margin-bottom: 28px;
-    font-size: 14px;
-}
-
-.alert {
-    padding: 12px;
-    border-radius: var(--radius);
-    margin-bottom: 20px;
-    font-size: 14px;
-}
-
-.alert-error {
-    background: #fee2e2;
-    color: #991b1b;
-}
-
-.alert-success {
-    background: #dcfce7;
-    color: #166534;
-}
-
-.form-group {
+.auth-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
     margin-bottom: 18px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 7px;
+    color: var(--accent-dark);
+    font-size: 0.72rem;
     font-weight: 700;
-    font-size: 14px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
 }
 
-.form-group input,
-.form-group textarea {
+.auth-brand svg {
+    width: 20px;
+    height: 20px;
+}
+
+.auth-card h1 {
+    font-size: 1.5rem;
+    letter-spacing: -0.025em;
+}
+
+.auth-subtitle {
+    margin: 6px 0 22px;
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+.auth-card .field:last-of-type {
+    margin-bottom: 20px;
+}
+
+.auth-card .btn {
     width: 100%;
-    padding: 12px 13px;
-    border: 1px solid var(--line-strong);
-    border-radius: var(--radius);
-    font-family: inherit;
-    font-size: 14px;
-    outline: none;
-}
-
-.form-group textarea {
-    min-height: 80px;
-    resize: vertical;
-}
-
-.form-group input:focus,
-.form-group textarea:focus {
-    border-color: var(--accent);
-}
-
-.card .btn {
-    width: 100%;
-    margin-top: 5px;
 }
 
 .auth-switch {
-    text-align: center;
-    margin-top: 22px;
-    font-size: 14px;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
     color: var(--muted);
+    font-size: 0.86rem;
+    text-align: center;
 }
 
 .auth-switch a {
-    color: var(--accent);
-    text-decoration: none;
-    font-weight: 700;
+    color: var(--accent-dark);
+    font-weight: 600;
 }
 
-@media (max-width: 600px) {
-    .card {
-        padding: 25px 20px;
+@media (max-width: 560px) {
+    .auth {
+        min-height: auto;
+        padding: 20px 14px 32px;
     }
 }

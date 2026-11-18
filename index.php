@@ -1,4 +1,4 @@
 <?php
-// Root entry point -> arahkan ke document root publik.
-header('Location: public/index.php');
+// Root entry point -> halaman beranda publik.
+header('Location: pages/public/home.php');
 exit;

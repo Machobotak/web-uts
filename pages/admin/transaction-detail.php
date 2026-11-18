@@ -4,6 +4,7 @@ require_once __DIR__ . '/../../config/bootstrap.php';
 
 use App\Services\AuthService;
 use App\Services\TransactionService;
+use App\Support\Shelf;
 use App\Middleware\AuthMiddleware;
 
 $authService = new AuthService($storage);
@@ -49,20 +50,20 @@ $detailStatusLabels = [
 
 $status = $transaction['status'] ?? 'pending';
 
-$startDate = $details[0]['start_date'] ?? ($transaction['create_at'] ?? '-');
-$dueDate = '-';
+$startDate = $details[0]['start_date'] ?? ($transaction['create_at'] ?? '');
+$dueDate = '';
 
 foreach ($details as $detail) {
     $candidate = $detail['due_date'] ?? '';
 
-    if ($candidate !== '' && ($dueDate === '-' || $candidate > $dueDate)) {
+    if ($candidate !== '' && ($dueDate === '' || $candidate > $dueDate)) {
         $dueDate = $candidate;
     }
 }
 
-$pageTitle = 'Detail Transaksi #' . $transactionId . ' | Digital Library';
-$pageHeading = 'Detail Transaksi';
-$pageSubtitle = 'Informasi lengkap pengajuan peminjaman ebook.';
+$pageTitle = 'Transaksi #' . $transactionId . ' | Digital Library';
+$pageHeading = 'Transaksi #' . $transactionId;
+$pageSubtitle = 'Rincian pengajuan, tenggat, dan status tiap ebook.';
 $activeNav = 'transactions';
 $userName = $admin->getName();
 $userRole = 'admin';
@@ -74,24 +75,24 @@ require __DIR__ . '/../partials/dashboard-header.php';
 <section class="panel">
 
     <div class="panel-head">
-        <h2>Transaksi #<?= $transactionId ?></h2>
+        <h2>Ringkasan</h2>
 
-        <a
-            class="btn btn-outline"
-            href="<?= e(app_url('pages/admin/transactions.php')) ?>"
-        >Kembali ke Transaksi</a>
+        <a class="btn btn-secondary btn-sm" href="<?= e(app_url('pages/admin/transactions.php')) ?>">
+            <?= icon('arrow-left') ?>
+            Kembali ke transaksi
+        </a>
     </div>
 
     <div class="detail-grid">
 
         <div class="detail-item">
-            <span>Nama Member</span>
+            <span>Member</span>
             <strong><?= e($member['name'] ?? 'Member tidak ditemukan') ?></strong>
         </div>
 
         <div class="detail-item">
-            <span>Email Member</span>
-            <strong><?= e($member['email'] ?? '-') ?></strong>
+            <span>Email</span>
+            <strong><?= e($member['email'] ?? '—') ?></strong>
         </div>
 
         <div class="detail-item">
@@ -104,42 +105,53 @@ require __DIR__ . '/../partials/dashboard-header.php';
         </div>
 
         <div class="detail-item">
-            <span>Tanggal Peminjaman</span>
-            <strong><?= e($startDate) ?></strong>
+            <span>Tanggal pinjam</span>
+            <strong><?= e(Shelf::date($startDate)) ?></strong>
         </div>
 
         <div class="detail-item">
-            <span>Tanggal Jatuh Tempo</span>
-            <strong><?= e($dueDate) ?></strong>
+            <span>Jatuh tempo</span>
+            <strong><?= e($dueDate !== '' ? Shelf::date($dueDate) : '—') ?></strong>
         </div>
 
         <div class="detail-item">
-            <span>Diproses Oleh</span>
-            <strong><?= e($processor['name'] ?? '-') ?></strong>
+            <span>Diproses oleh</span>
+            <strong><?= e($processor['name'] ?? '—') ?></strong>
         </div>
 
         <div class="detail-item">
-            <span>Waktu Proses</span>
-            <strong><?= e($transaction['processed_at'] ?? '-') ?></strong>
+            <span>Waktu proses</span>
+            <strong><?= e(
+                ($transaction['processed_at'] ?? '') !== ''
+                    ? Shelf::date($transaction['processed_at'])
+                    : '—'
+            ) ?></strong>
         </div>
 
         <div class="detail-item">
             <span>Catatan</span>
-            <strong><?= e(($transaction['notes'] ?? '') !== '' ? $transaction['notes'] : '-') ?></strong>
+            <strong><?= e(($transaction['notes'] ?? '') !== '' ? $transaction['notes'] : '—') ?></strong>
         </div>
 
     </div>
 
-    <h2>Daftar Ebook</h2>
+</section>
+
+<section class="panel">
+
+    <div class="panel-head">
+        <h2>Ebook dalam pengajuan</h2>
+        <span class="hint"><?= count($details) ?> judul</span>
+    </div>
 
     <div class="table-wrap">
         <table class="table">
             <thead>
                 <tr>
-                    <th>No</th>
-                    <th>Judul Ebook</th>
+                    <th class="number">No</th>
+                    <th>Judul</th>
                     <th>Penulis</th>
-                    <th>Jatuh Tempo</th>
+                    <th>Jatuh tempo</th>
                     <th>Status</th>
                     <th>Dikembalikan</th>
                 </tr>
@@ -154,16 +166,22 @@ require __DIR__ . '/../partials/dashboard-header.php';
                 <?php foreach ($details as $index => $detail): ?>
                     <?php $detailStatus = $detail['status'] ?? 'active'; ?>
                     <tr>
-                        <td><?= $index + 1 ?></td>
+                        <td class="number"><?= $index + 1 ?></td>
                         <td><?= e($detail['ebook_title'] ?? 'Ebook') ?></td>
-                        <td><?= e($detail['ebook_author'] ?? '-') ?></td>
-                        <td><?= e($detail['due_date'] ?? '-') ?></td>
+                        <td><?= e($detail['ebook_author'] ?? '—') ?></td>
+                        <td class="number"><?= e(Shelf::date($detail['due_date'] ?? null)) ?></td>
                         <td>
                             <span class="badge badge-<?= e($detailStatus) ?>">
                                 <?= e($detailStatusLabels[$detailStatus] ?? $detailStatus) ?>
                             </span>
                         </td>
-                        <td><?= e($detail['returned_at'] ?? '-') ?></td>
+                        <td class="number">
+                            <?= e(
+                                ($detail['returned_at'] ?? '') !== ''
+                                    ? Shelf::date($detail['returned_at'])
+                                    : '—'
+                            ) ?>
+                        </td>
                     </tr>
                 <?php endforeach; ?>
             <?php endif; ?>
