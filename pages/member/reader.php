@@ -145,10 +145,21 @@ require __DIR__ . '/../partials/dashboard-header.php';
     </div>
 
     <?php if ($extension === 'pdf'): ?>
+        <?php
+        // ?v=filemtime agar perubahan berkas pembaca langsung dipakai browser.
+        $assetVersion = static function (string $path): string {
+            $full = __DIR__ . '/../../' . $path;
+            $time = is_file($full) ? filemtime($full) : false;
+
+            return app_url($path) . ($time === false ? '' : '?v=' . $time);
+        };
+        ?>
+
         <div
             class="reader"
             id="pdfViewer"
             data-src="<?= e(app_url('pages/member/reader.php?id=' . $ebookId . '&stream=1')) ?>"
+            data-worker="<?= e($assetVersion('public/assets/pdfjs/pdf.worker.min.js')) ?>"
         >
             <div class="reader-bar">
                 <button type="button" class="btn btn-outline" id="pdfPrev" disabled>Sebelumnya</button>
@@ -159,7 +170,8 @@ require __DIR__ . '/../partials/dashboard-header.php';
             <canvas id="pdfCanvas"></canvas>
         </div>
 
-        <script type="module" src="<?= e(app_url('public/assets/js/reader.js')) ?>"></script>
+        <script src="<?= e($assetVersion('public/assets/pdfjs/pdf.min.js')) ?>"></script>
+        <script src="<?= e($assetVersion('public/assets/js/reader.js')) ?>"></script>
     <?php else: ?>
         <p class="empty">
             Ebook ini berformat EPUB dan tidak bisa ditampilkan langsung di browser.
