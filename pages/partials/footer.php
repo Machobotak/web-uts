@@ -28,5 +28,7 @@ if (!function_exists('app_url')) {
 
 </footer>
 
+<script src="<?= htmlspecialchars(asset_url('public/assets/js/ui.js')) ?>" defer></script>
+
 </body>
 </html>

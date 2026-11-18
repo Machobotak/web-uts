@@ -49,9 +49,17 @@ $navItems = [
 <?php foreach ($cssFiles as $cssFile): ?>
     <link rel="stylesheet" href="<?= htmlspecialchars(asset_url('public/assets/css/' . $cssFile)) ?>">
 <?php endforeach; ?>
+    <noscript>
+        <style>
+            @media (max-width: 800px) {
+                .navbar .nav-toggle { display: none !important; }
+                body[data-nav] .navbar .nav-links { display: flex !important; }
+            }
+        </style>
+    </noscript>
 </head>
 
-<body>
+<body data-nav="closed">
 
 <a class="skip-link" href="#konten">Ke konten utama</a>
 
@@ -64,7 +72,18 @@ $navItems = [
             Digital Library
         </a>
 
-        <nav class="nav-links" aria-label="Navigasi utama">
+        <button
+            type="button"
+            class="nav-toggle"
+            aria-expanded="false"
+            aria-controls="mainNav"
+            data-nav-breakpoint="800"
+        >
+            <?= icon('menu') ?>
+            Menu
+        </button>
+
+        <nav class="nav-links" id="mainNav" aria-label="Navigasi utama">
             <?php foreach ($navItems as $key => $item): ?>
                 <a
                     href="<?= htmlspecialchars($item['url']) ?>"
