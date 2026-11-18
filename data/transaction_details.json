@@ -97,5 +97,14 @@
         "due_date": "2026-11-24 14:40:44",
         "status": "returned",
         "returned_at": "2026-11-17 14:42:24"
+    },
+    {
+        "id_detail": 12,
+        "id_transaction": 10,
+        "id_ebook": 3,
+        "start_date": "2026-11-18 16:39:10",
+        "due_date": "2026-11-25 16:39:10",
+        "status": "active",
+        "returned_at": null
     }
 ]

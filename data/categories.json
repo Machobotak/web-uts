@@ -4,5 +4,11 @@
         "name": "Novel",
         "description": "Category bacaan novel",
         "create_at": "2026-11-16 16:31:28"
+    },
+    {
+        "id_category": 2,
+        "name": "Sejarah",
+        "description": "Sejarah Indonesia",
+        "create_at": "2026-11-18 16:52:21"
     }
 ]

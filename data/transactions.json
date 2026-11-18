@@ -79,5 +79,14 @@
         "status": "approved",
         "notes": "",
         "create_at": "2026-11-17 14:40:44"
+    },
+    {
+        "id_transaction": 10,
+        "id_user": 7,
+        "approved_by": 3,
+        "processed_at": "2026-11-18 16:54:07",
+        "status": "approved",
+        "notes": "",
+        "create_at": "2026-11-18 16:39:10"
     }
 ]

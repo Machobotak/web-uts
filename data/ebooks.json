@@ -32,5 +32,22 @@
         "license_total": 10,
         "create_at": "2026-11-17 14:16:28",
         "update_at": "2026-11-17 14:42:24"
+    },
+    {
+        "id_ebook": 3,
+        "id_category": 1,
+        "title": "test aja",
+        "author": "ayub",
+        "publisher": "ayub",
+        "publication_year": 2024,
+        "isbn": "123123123",
+        "description": "asjkdhao87wiubadiuwdb",
+        "cover": "cover_1d25adae0186c614.jpeg",
+        "file_path": "ebook_e6af048720de1f07.pdf",
+        "status": "available",
+        "license_limit": 9,
+        "license_total": 10,
+        "create_at": "2026-11-18 16:38:31",
+        "update_at": "2026-11-18 16:39:10"
     }
 ]
