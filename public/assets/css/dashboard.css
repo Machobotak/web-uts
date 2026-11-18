@@ -549,12 +549,34 @@
 }
 
 /* Reader. */
-.reader-frame {
-    width: 100%;
-    height: 78vh;
+.reader {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.reader-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.reader-page {
+    font-size: 0.9rem;
+    color: var(--muted);
+}
+
+.reader canvas {
+    display: block;
+    margin: 0 auto;
+    max-width: 100%;
+    height: auto;
     border: 1px solid var(--line);
     border-radius: 10px;
-    background: var(--surface);
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
 }
 
 /* Detail transaksi. */

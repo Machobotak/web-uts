@@ -16,6 +16,10 @@ Aplikasi perpustakaan digital berbasis PHP dengan penyimpanan JSON (tanpa databa
 | `data/` | "Database" JSON: users, categories, ebooks, transactions |
 | `storage/` | File ebook (PDF/EPUB) |
 
+Pembaca ebook memakai pdf.js 4.10.38 (Apache-2.0) yang di-vendor di
+`public/assets/pdfjs/` — halaman PDF digambar ke `<canvas>` sehingga tidak
+ada tombol unduh/cetak bawaan penampil PDF browser.
+
 ## Menjalankan
 
 ```bash

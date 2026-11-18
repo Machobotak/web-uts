@@ -222,14 +222,26 @@ require __DIR__ . '/../partials/dashboard-header.php';
                                     data-id="<?= $transactionId ?>"
                                 >Batalkan</button>
                             <?php elseif ($status === 'approved'): ?>
+                                <?php $hasAction = false; ?>
+
                                 <?php foreach ($transaction['details'] as $detail): ?>
-                                    <?php if (($detail['status'] ?? '') !== 'returned'): ?>
+                                    <?php if (($detail['status'] ?? '') === 'returned') {
+                                        continue;
+                                    } ?>
+
+                                    <?php $hasAction = true; ?>
+
+                                    <?php if (!empty($detail['is_overdue'])): ?>
+                                        <span class="badge badge-overdue">Jatuh tempo</span>
+                                    <?php else: ?>
                                         <a
                                             class="btn btn-primary"
                                             href="<?= e(app_url('pages/member/reader.php?id=' . (int) ($detail['id_ebook'] ?? 0))) ?>"
                                         >Baca <?= e($detail['ebook_title'] ?: 'Ebook') ?></a>
                                     <?php endif; ?>
                                 <?php endforeach; ?>
+
+                                <?php if (!$hasAction): ?>-<?php endif; ?>
                             <?php else: ?>
                                 -
                             <?php endif; ?>
