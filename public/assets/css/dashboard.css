@@ -456,6 +456,46 @@
     gap: 0 16px;
 }
 
+/* Pratinjau cover pada formulir ebook */
+
+.cover-field {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.cover-preview {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 76px;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    border: 1px solid var(--line-strong);
+    border-radius: 6px;
+    background: var(--page);
+}
+
+.cover-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.cover-preview-empty {
+    padding: 0 6px;
+    color: var(--muted);
+    font-size: 0.68rem;
+    line-height: 1.3;
+    text-align: center;
+}
+
+.cover-field-input {
+    flex: 1 1 150px;
+    min-width: 0;
+}
 
 .search-input {
     flex: 0 1 280px;

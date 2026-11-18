@@ -185,12 +185,45 @@ require __DIR__ . '/../partials/dashboard-header.php';
             <div class="field">
                 <label for="ebook-cover">Cover (jpg, jpeg, png, webp &mdash; maks. 2 MB)</label>
 
-                <input
-                    type="file"
-                    id="ebook-cover"
-                    name="cover"
-                    accept=".jpg,.jpeg,.png,.webp"
-                >
+                <?php
+                $coverFile = basename((string) ($editEbook['cover'] ?? ''));
+                $hasCover = $coverFile !== ''
+                    && is_file(__DIR__ . '/../../public/uploads/covers/' . $coverFile);
+                $coverUrl = $hasCover
+                    ? app_url('public/uploads/covers/' . rawurlencode($coverFile))
+                    : '';
+                ?>
+
+                <div class="cover-field">
+                    <span class="cover-preview">
+                        <img
+                            id="coverPreviewImage"
+                            <?= $hasCover ? 'src="' . e($coverUrl) . '"' : '' ?>
+                            alt="Cover ebook"
+                            <?= $hasCover ? '' : 'hidden' ?>
+                        >
+                        <span
+                            class="cover-preview-empty"
+                            id="coverPreviewEmpty"
+                            <?= $hasCover ? 'hidden' : '' ?>
+                        >Belum ada cover</span>
+                    </span>
+
+                    <div class="cover-field-input">
+                        <input
+                            type="file"
+                            id="ebook-cover"
+                            name="cover"
+                            accept=".jpg,.jpeg,.png,.webp"
+                        >
+
+                        <p class="hint">
+                            <?= $hasCover
+                                ? 'Cover saat ini. Pilih berkas baru untuk menggantinya.'
+                                : 'Pratinjau muncul setelah berkas gambar dipilih.' ?>
+                        </p>
+                    </div>
+                </div>
             </div>
 
             <div class="field">
@@ -354,6 +387,30 @@ document.getElementById('ebookForm').addEventListener('submit', async function (
     } catch (error) {
         showMessage(error.message, false);
     }
+});
+
+// Pratinjau cover: tampilkan berkas yang dipilih sebelum disimpan.
+const coverInput = document.getElementById('ebook-cover');
+const coverImage = document.getElementById('coverPreviewImage');
+const coverEmpty = document.getElementById('coverPreviewEmpty');
+let coverObjectUrl = '';
+
+coverInput.addEventListener('change', function () {
+    if (coverObjectUrl) {
+        URL.revokeObjectURL(coverObjectUrl);
+        coverObjectUrl = '';
+    }
+
+    const file = this.files && this.files[0];
+
+    if (!file) {
+        return;
+    }
+
+    coverObjectUrl = URL.createObjectURL(file);
+    coverImage.src = coverObjectUrl;
+    coverImage.hidden = false;
+    coverEmpty.hidden = true;
 });
 
 document.querySelectorAll('.delete-ebook').forEach(button => {
