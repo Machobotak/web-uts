@@ -71,6 +71,12 @@ canvas {
     max-width: 100%;
 }
 
+.icon {
+    width: 18px;
+    height: 18px;
+    flex: none;
+}
+
 h1,
 h2,
 h3 {
