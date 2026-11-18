@@ -5,6 +5,7 @@ require_once __DIR__ . '/../../config/bootstrap.php';
 use App\Services\AuthService;
 use App\Services\CatalogService;
 use App\Services\TransactionService;
+use App\Support\Shelf;
 use App\Middleware\AuthMiddleware;
 
 $authService = new AuthService($storage);
@@ -36,6 +37,34 @@ $pendingTransactions = array_filter(
     $transactions,
     fn($transaction) => ($transaction['status'] ?? '') === 'pending'
 );
+
+// Lima pengajuan terlama yang masih menunggu keputusan (yang paling lama dulu).
+$queue = array_slice(array_reverse(array_values($pendingTransactions)), 0, 5);
+
+$userNames = [];
+foreach ($users as $user) {
+    $userNames[(int) ($user['id_user'] ?? 0)] = $user['name'] ?? 'Pengguna';
+}
+
+$queueRows = [];
+foreach ($queue as $transaction) {
+    $details = $transactionService->getTransactionDetailsWithEbook(
+        (int) ($transaction['id_transaction'] ?? 0)
+    );
+
+    $titles = array_values(array_filter(array_map(
+        fn($detail) => $detail['ebook_title'] ?? '',
+        $details
+    )));
+
+    $queueRows[] = [
+        'id' => (int) ($transaction['id_transaction'] ?? 0),
+        'member' => $userNames[(int) ($transaction['id_user'] ?? 0)] ?? 'Pengguna tidak ditemukan',
+        'title' => $titles[0] ?? '—',
+        'extra' => max(0, count($titles) - 1),
+        'created' => $transaction['create_at'] ?? '',
+    ];
+}
 
 // Lima member terbaru untuk tabel ringkasan.
 $latestMembers = array_slice(array_reverse($members), 0, 5);
@@ -82,6 +111,58 @@ require __DIR__ . '/../partials/dashboard-header.php';
         <p class="stat-label">Menunggu</p>
         <p class="stat-value"><?= count($pendingTransactions) ?></p>
         <p class="stat-note">perlu ditinjau</p>
+    </div>
+
+</section>
+
+<section class="panel">
+
+    <div class="panel-head">
+        <h2>Antrean persetujuan</h2>
+        <span class="hint">
+            <?= count($pendingTransactions) ?> pengajuan menunggu
+        </span>
+        <a class="btn btn-primary btn-sm" href="<?= e(app_url('pages/admin/transactions.php')) ?>">
+            Kelola transaksi
+            <?= icon('arrow-right') ?>
+        </a>
+    </div>
+
+    <div class="table-wrap">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Member</th>
+                    <th>Ebook</th>
+                    <th>Diajukan</th>
+                </tr>
+            </thead>
+
+            <tbody>
+            <?php if (empty($queueRows)): ?>
+                <tr>
+                    <td colspan="4" class="empty">
+                        Tidak ada pengajuan yang menunggu keputusan.
+                    </td>
+                </tr>
+            <?php else: ?>
+                <?php foreach ($queueRows as $row): ?>
+                    <tr>
+                        <td class="id">#<?= $row['id'] ?></td>
+                        <td><?= e($row['member']) ?></td>
+                        <td>
+                            <?= e($row['title']) ?>
+                            <?php if ($row['extra'] > 0): ?>
+                                <span class="id">+<?= $row['extra'] ?></span>
+                            <?php endif; ?>
+                        </td>
+                        <td class="number"><?= e(Shelf::date($row['created'])) ?></td>
+                    </tr>
+                <?php endforeach; ?>
+            <?php endif; ?>
+            </tbody>
+        </table>
     </div>
 
 </section>
