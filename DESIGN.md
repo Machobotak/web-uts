@@ -192,7 +192,7 @@ Paragraf dibatasi 46–70ch; `text-wrap: balance` untuk judul, `pretty` untuk pa
 - Wadah publik: `min(1160px, 92%)`, rata tengah.
 - Shell aplikasi: grid `250px minmax(0, 1fr)`; sidebar sticky setinggi viewport; konten utama mengisi sisa lebar dengan padding `clamp(20px, 4vw, 38px)`.
 - Beranda: dua kolom `1.05fr / 0.95fr` dengan rak pratinjau di kanan; rak turun ke bawah judul di bawah 900px.
-- Rak buku: `repeat(auto-fill, minmax(210px, 1fr))`, jarak `22px 18px`; sampul `4 / 5`.
+- Rak buku: `repeat(auto-fill, minmax(210px, 1fr))`, jarak `22px 18px`; sampul `4 / 5`. Di bawah 800px jadi dua kolom, dan tetap dua kolom sampai 320px — tipografi dan padding kartu menyusut, bukan jumlah kolomnya.
 - Statistik: satu panel bergaris dengan pembatas 1px antar sel (`repeat(auto-fit, minmax(148px, 1fr))`), bukan kartu terpisah.
 - Tabel: lebar penuh di dalam `.table-wrap` yang bisa menggeser horizontal; kolom angka rata kanan, kolom aksi tidak pernah membungkus.
 - Breakpoint: `900px` sidebar jadi off-canvas + scrim; `800px` navbar publik; `760px` grid dua kolom jadi satu; `560px` padding dan tipografi menyusut.
